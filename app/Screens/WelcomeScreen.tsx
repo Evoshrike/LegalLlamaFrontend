@@ -35,7 +35,7 @@ import {
                 buttonStyle={styles.buttonStyle}
                 containerStyle={styles.buttonContainer}
                 titleStyle={{ fontWeight: 'bold' }}
-                onPress={() => console.log("Pressed Testing mode")}
+                onPress={() => navigation.navigate("TestingScreen")}
               />
         </View>
       </View>
