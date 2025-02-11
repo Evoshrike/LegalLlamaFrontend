@@ -49,6 +49,31 @@ async function fetchFeedback(conversation: Array<q_and_a>): Promise<feedback> {
     return responseJSON;
 } 
 
-export { fetchResponse, fetchFeedback };
+async function categorizeQuestion(question: string): Promise<string> {
+    
+    const responseURL = url + '/categorize-question';
+    
+    const requestBody = { question: question};
+    
+
+    const response = await fetch(responseURL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+
+    const responseJSON = await response.json();
+    const category = responseJSON.message;
+    return category;
+} 
+
+export { fetchResponse, fetchFeedback, categorizeQuestion };
 export default {};
 

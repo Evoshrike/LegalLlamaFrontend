@@ -21,10 +21,20 @@ class RepeatRequest(BaseModel):
 @app.post("/repeat-response")
 def repeat_response(request: RepeatRequest):
     return {"response": f"You said: {request.prompt}"}
-class RepeatRequest2(BaseModel):
+
+class CategorizeRequest(BaseModel):
+    question: str
+@app.post("/categorize-question")
+def categorize_question(request: CategorizeRequest):
+    if "what" in request.question.lower():
+        return {"message": "Open-Ended"}
+    else:
+        return {"message": "Suggestive"}
+
+class FeedbackRequest(BaseModel):
     conversation: list
 @app.post("/feedback")
-def feedback(request: RepeatRequest2):
+def feedback(request: FeedbackRequest):
     if len(request.conversation) > 2:
         return {"response": "You asked more than 2 questions! Good job!", "isCorrect": True}
     else: 

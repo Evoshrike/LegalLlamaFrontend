@@ -6,19 +6,33 @@ import colors from "../config/colors";
 import { Button } from "@rneui/base";
 import { RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { categorizeQuestion } from "../config/API requests";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PracticeScreen1">;
 
-// TODO: Make the layout better (less empty space in the bottom half of the screen)
+
 const PracticeScreen1: React.FC<Props> = ({ navigation, route }) => {
+  // For testing purposes, marks all questions as correct (still performs API call)
+  // to test navigation. For production, set to false. 
+  const alwaysCorrect = false;
+  const { level } = route.params;
+  const questionTypes = ["Open-Ended", "Directive", "Option Posing", "Suggestive"];
+  const questionType = questionTypes[level - 1];
+  var questionPronoun = "";
+  if (level == 2){
+    questionPronoun = "a";
+  } else {
+    questionPronoun = "an";
+  }
+  const currentType = questionTypes[level - 1];
   const [question, setQuestion] = React.useState("");
   const [placeholder, setPlaceholder] = React.useState("Enter your question");
   const [modalVisible, setModalVisible] = React.useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
 
-  const handleSubmit = () => {
-    // Placeholder for checking the answer - to be replaced by API call to webserver
-    if (question === "What is the capital of France?") {
+  const handleSubmit = async () => {
+    const category = await categorizeQuestion(question);
+    if ((category == questionType) || alwaysCorrect) {
       setIsAnswerCorrect(true);
     } else {
       setIsAnswerCorrect(false);
@@ -31,19 +45,27 @@ const PracticeScreen1: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const handleAnswer = (isCorrect: boolean) => {
-    if (!isCorrect) {
+    if (!(isCorrect)) {
       handleCloseModal();
       setQuestion("");
       setPlaceholder("Enter your question");
     } else {
         handleCloseModal();
-        navigation.navigate("Home");
+        if (level < 4) {
+          setQuestion("");
+          setPlaceholder("Enter your question");
+          navigation.navigate("PracticeScreen1", { level: level + 1 });
+        } else {
+          setQuestion("");
+          setPlaceholder("Enter your question");
+          navigation.navigate("Home");
+        }
     }
   };
 
   return (
     <View style={styles.background}>
-      <Text style={styles.header}>Type in an open-ended question</Text>
+      <Text style={styles.header}>Type in {questionPronoun} {questionType} question</Text>
       <TextInput
         style={[
           styles.textInput,
@@ -94,13 +116,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#004D40",
     borderWidth: 2,
     borderColor: "white",
-    borderRadius: 30,
+    borderRadius: 60,
   },
   buttonContainer: {
-    width: 200,
+    width: 300,
+    height: 200,
     marginHorizontal: 50,
-    marginVertical: 10,
+    marginTop: 60,
     alignSelf: "center",
+    marginBottom: 100,
   },
   container: {
     flex: 1,
@@ -110,7 +134,7 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     flexGrow: 1,
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "lightgreen",
     top: 0,
@@ -119,12 +143,14 @@ const styles = StyleSheet.create({
     width: "40%",
     height: 100,
     backgroundColor: colors.transparent,
+    marginBottom: 100,
   },
   header: {
-    fontSize: 24,
+    fontSize: 36,
     fontWeight: "bold",
-    marginBottom: 16,
+    marginBottom: 50,
     marginTop: 40,
+    color: "#004D40",
   },
   modalOverlay: {
     flex: 1,
@@ -172,9 +198,9 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     backgroundColor: "white",
     width: "80%",
-    height:"20%",
+    height:"40%",
     borderRadius: 10,
-    marginBottom: 16,
+    marginBottom: 20,
     paddingHorizontal: 8,
     textAlignVertical: "top",
     color: "",
