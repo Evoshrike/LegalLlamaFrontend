@@ -1,10 +1,20 @@
 type RootStackParamList = {
     Home: undefined;
     PracticeScreen1: undefined;
-    TestingScreen: undefined;
+    TestingScreen: { stage: number};
     
   };
 
-  export {RootStackParamList};
+type q_and_a = {
+    question: string;
+    answer: string;
+}
+
+type feedback = {
+  response: string;
+  isCorrect: boolean;
+}
+
+  export {RootStackParamList, q_and_a, feedback};
 
   export default {}

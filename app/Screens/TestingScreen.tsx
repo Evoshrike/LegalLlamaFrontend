@@ -1,6 +1,15 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, ScrollView, StyleSheet } from "react-native";
-import { fetchResponse } from "../config/API requests";
+import { View, Text, TextInput, Button, ScrollView, StyleSheet, Modal, Pressable } from "react-native";
+import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
+import { fetchFeedback, fetchResponse } from "../config/API requests";
+import { q_and_a, RootStackParamList } from "../config/types";
+import { NativeStackScreenProps } from "react-native-screens/lib/typescript/native-stack/types";
+
+type Props = NativeStackScreenProps<RootStackParamList, 'TestingScreen'>;
+
+
+
+
 
 const ChatMessage: React.FC<{ message: string; isUser: boolean }> = ({ message, isUser }) => {
   return (
@@ -10,16 +19,37 @@ const ChatMessage: React.FC<{ message: string; isUser: boolean }> = ({ message, 
   );
 };
 
-const TestingScreen: React.FC = () => {
+const TestingScreen: React.FC<Props> = ({navigation, route}) => {
+  
+  const stageList = [
+    "Stage 1: Introductory Phase",
+    "Stage 2: Rapport-Building Phase",
+    "Stage 3: Transitional Phase",
+    "Stage 4: Substantive Phase",
+    "Stage 5: Closure Phase"
+]
+  const { stage } = route.params;
+  const stage_name = stageList[stage - 1];
+
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
   const [input, setInput] = useState("");
   const [botTyping, setBotTyping] = useState(false);
+  const [qAndAPairs, setQAndAPairs] = useState<q_and_a[]>([]);
+  const [questionCount, setQuestionCount] = useState(0);
+  const [modalVisible, setModalVisible] = React.useState(false);
+  const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
+  const [feedback, setFeedback] = React.useState<string | null>(null);
 
   const handleSend = () => {
-    if (input.trim()) {
-      setMessages([...messages, { text: input, isUser: true }]);
-      setInput("");
-      simulateBotResponse(input);
+    if (questionCount < 5) {
+      if (input.trim()) {
+        setMessages([...messages, { text: input, isUser: true }]);
+        setInput("");
+        simulateBotResponse(input);
+        setQuestionCount(questionCount + 1);
+      }
+    } else {
+      setModalVisible(true);
     }
   };
 
@@ -28,6 +58,10 @@ const TestingScreen: React.FC = () => {
     try {
       const botMessage = await fetchResponse(userMessage);
       displayMessageCharacterByCharacter(botMessage, false);
+      setQAndAPairs([...qAndAPairs, { question: userMessage, answer: botMessage }]);
+      if (questionCount + 1 === 5) {
+        onFifthQuestion();
+      }
     } catch (error) {
       console.error("Error fetching bot response:", error);
       const errorMessage = "There was an error fetching a response. Please try again later.";
@@ -59,8 +93,33 @@ const TestingScreen: React.FC = () => {
     }, 50);
   };
 
+  async function onFifthQuestion(): Promise<undefined> {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    const feedbackJSON = await fetchFeedback(qAndAPairs);
+    setIsAnswerCorrect(feedbackJSON.isCorrect);
+    setFeedback(feedbackJSON.response);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
+
+  const handleAnswer = (isCorrect: boolean) => {
+    setModalVisible(false);
+    if (isCorrect) {
+      setMessages([]);
+      setQAndAPairs([]);
+      setQuestionCount(0);
+      setIsAnswerCorrect(null);
+      setFeedback(null);
+      navigation.navigate("TestingScreen", { stage: stage + 1 });
+    }
+  };
+
   return (
     <View style={styles.container}>
+      <Text style={styles.header}>Ask 5 questions appropriate for {stage_name}</Text>
       <ScrollView style={styles.chatContainer}>
         {messages.map((message, index) => (
           <ChatMessage key={index} message={message.text} isUser={message.isUser} />
@@ -75,6 +134,26 @@ const TestingScreen: React.FC = () => {
         />
         <Button title="Send" onPress={handleSend} />
       </View>
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modalVisible}
+              onRequestClose={handleCloseModal}
+            >
+              <View style={styles.modalOverlay}>
+                <View style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal]}>
+                  <Text style={styles.modalText}>
+                    {feedback}
+                  </Text>
+                  <Pressable
+                    style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
+                    onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
+                  >
+                    <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </Modal>
     </View>
   );
 };
@@ -83,6 +162,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "darkgrey",
+    margin: 20,
   },
   chatContainer: {
     flex: 1,
@@ -120,6 +205,45 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginRight: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    padding: 20,
+    alignItems: 'center',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  correctModal: {
+    backgroundColor: '#4CAF50', 
+  },
+  incorrectModal: {
+    backgroundColor: '#f44336', 
+  },
+  modalText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: 10,
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+  },
+  correctButton: {
+    backgroundColor: '#388E3C', 
+  },
+  incorrectButton: {
+    backgroundColor: '#D32F2F', 
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

@@ -21,6 +21,14 @@ class RepeatRequest(BaseModel):
 @app.post("/repeat-response")
 def repeat_response(request: RepeatRequest):
     return {"response": f"You said: {request.prompt}"}
+class RepeatRequest2(BaseModel):
+    conversation: list
+@app.post("/feedback")
+def feedback(request: RepeatRequest2):
+    if len(request.conversation) > 2:
+        return {"response": "You asked more than 2 questions! Good job!", "isCorrect": True}
+    else: 
+        return {"response": "You asked less than 2 questions! Try again!", "isCorrect": False}
 
 @app.get("/yes")
 def yes_response():

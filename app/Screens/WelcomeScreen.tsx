@@ -35,7 +35,7 @@ import {
                 buttonStyle={styles.buttonStyle}
                 containerStyle={styles.buttonContainer}
                 titleStyle={{ fontWeight: 'bold' }}
-                onPress={() => navigation.navigate("TestingScreen")}
+                onPress={() => navigation.navigate("TestingScreen", { stage: 1 })}
               />
         </View>
       </View>
