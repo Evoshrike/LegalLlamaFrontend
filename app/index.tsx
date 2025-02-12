@@ -8,6 +8,7 @@ import WelcomeScreen from "./Screens/WelcomeScreen";
 import { RootStackParamList } from "./config/types";
 import PracticeScreen1 from "./Screens/PracticeScreen1";
 import TestingScreen from "./Screens/TestingScreen";
+import PracticeScreen2 from "./Screens/PracticeScreen2";
 
 console.log("app loading..");
 enableScreens();
@@ -38,6 +39,7 @@ const App = () => {
       <Stack.Screen name="Home" component={WelcomeScreen} />
       <Stack.Screen name="PracticeScreen1" component={PracticeScreen1} />
       <Stack.Screen name="TestingScreen" component={TestingScreen} />
+      <Stack.Screen name="PracticeScreen2" component={PracticeScreen2} />
  
     </Stack.Navigator>
 

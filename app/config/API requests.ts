@@ -1,5 +1,6 @@
 
-const url = 'http://127.0.0.1:8000';
+const onAndroid = true; // Variable for accessing localhost on emulator vs local device
+const url = onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000'
 import { feedback, q_and_a } from './types';
 
 async function fetchResponse(prompt: string): Promise<string> {
@@ -71,7 +72,7 @@ async function categorizeQuestion(question: string): Promise<string> {
 
     const responseJSON = await response.json();
     const category = responseJSON.message;
-    return category;
+    return responseJSON;
 } 
 
 export { fetchResponse, fetchFeedback, categorizeQuestion };

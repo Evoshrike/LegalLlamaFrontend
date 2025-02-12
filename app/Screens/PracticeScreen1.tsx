@@ -14,7 +14,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "PracticeScreen1">;
 const PracticeScreen1: React.FC<Props> = ({ navigation, route }) => {
   // For testing purposes, marks all questions as correct (still performs API call)
   // to test navigation. For production, set to false. 
-  const alwaysCorrect = false;
+  const alwaysCorrect = true;
   const { level } = route.params;
   const questionTypes = ["Open-Ended", "Directive", "Option Posing", "Suggestive"];
   const questionType = questionTypes[level - 1];
@@ -58,7 +58,7 @@ const PracticeScreen1: React.FC<Props> = ({ navigation, route }) => {
         } else {
           setQuestion("");
           setPlaceholder("Enter your question");
-          navigation.navigate("Home");
+          navigation.navigate("PracticeScreen2");
         }
     }
   };
