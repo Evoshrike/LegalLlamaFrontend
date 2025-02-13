@@ -35,14 +35,18 @@ def categorize_question(request: CategorizeRequest):
 def generate_question():
     return {"question": "What happened?", "category": "Open-Ended"}
 
+@app.get("/generate-scenario")
+def generate_scenario():
+    return {"message": "You are in a room with a table and a chair."}
+
 class FeedbackRequest(BaseModel):
     conversation: list
 @app.post("/feedback")
 def feedback(request: FeedbackRequest):
     if len(request.conversation) > 2:
-        return {"response": "You asked more than 2 questions! Good job!", "isCorrect": True}
+        return {"response": "You asked more than 2 questions! Good job!", "is_correct": True}
     else: 
-        return {"response": "You asked less than 2 questions! Try again!", "isCorrect": False}
+        return {"response": "You asked less than 2 questions! Try again!", "is_correct": False}
 
 @app.get("/yes")
 def yes_response():

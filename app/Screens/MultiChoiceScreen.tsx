@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, Image } from 'react-native';
-import { Button } from '@rneui/base';
+
 import colors from '../config/colors';
 import { fetchQuestion } from '../config/API requests';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";

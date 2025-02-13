@@ -97,6 +97,28 @@ async function fetchQuestion(): Promise<categorized_question> {
     return responseJSON;
 }
 
-export { fetchResponse, fetchFeedback, categorizeQuestion, fetchQuestion };
+async function fetchScenario(): Promise<string> {
+    
+    const responseURL = url + '/generate-scenario';
+
+    const response = await fetch(responseURL, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+
+    const responseJSON = await response.json();
+    const scenario = responseJSON.message;
+    return scenario;
+}
+
+export { fetchResponse, fetchFeedback, categorizeQuestion, fetchQuestion, fetchScenario };
 export default {};
 

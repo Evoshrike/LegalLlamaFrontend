@@ -1,15 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, ScrollView, StyleSheet, Modal, Pressable } from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
-import { fetchFeedback, fetchResponse } from "../config/API requests";
+import { fetchFeedback, fetchResponse, fetchScenario } from "../config/API requests";
 import { q_and_a, RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TestingScreen'>;
-
-
-
-
 
 const ChatMessage: React.FC<{ message: string; isUser: boolean }> = ({ message, isUser }) => {
   return (
@@ -19,15 +15,14 @@ const ChatMessage: React.FC<{ message: string; isUser: boolean }> = ({ message, 
   );
 };
 
-const TestingScreen: React.FC<Props> = ({navigation, route}) => {
-  
+const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const stageList = [
     "Stage 1: Introductory Phase",
     "Stage 2: Rapport-Building Phase",
     "Stage 3: Transitional Phase",
     "Stage 4: Substantive Phase",
     "Stage 5: Closure Phase"
-]
+  ];
   const { stage } = route.params;
   const stage_name = stageList[stage - 1];
 
@@ -39,6 +34,7 @@ const TestingScreen: React.FC<Props> = ({navigation, route}) => {
   const [modalVisible, setModalVisible] = React.useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
   const [feedback, setFeedback] = React.useState<string | null>(null);
+  const [scenario, setScenario] = useState<string>("");
 
   const handleSend = () => {
     if (questionCount < 5) {
@@ -101,6 +97,16 @@ const TestingScreen: React.FC<Props> = ({navigation, route}) => {
     setModalVisible(true);
   };
 
+  async function generateScenario() {
+    const scenario = await fetchScenario();
+    setScenario(scenario);
+    
+  }
+
+  useEffect(() => {
+      generateScenario();
+    }, []);
+
   const handleCloseModal = () => {
     setModalVisible(false);
   };
@@ -120,6 +126,10 @@ const TestingScreen: React.FC<Props> = ({navigation, route}) => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Ask 5 questions appropriate for {stage_name}</Text>
+      <View style={styles.speechBubble}>
+        <Text style={styles.scenarioText}>Your scenario is: {scenario}</Text>
+      </View>
+      
       <ScrollView style={styles.chatContainer}>
         {messages.map((message, index) => (
           <ChatMessage key={index} message={message.text} isUser={message.isUser} />
@@ -134,26 +144,26 @@ const TestingScreen: React.FC<Props> = ({navigation, route}) => {
         />
         <Button title="Send" onPress={handleSend} />
       </View>
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={modalVisible}
-              onRequestClose={handleCloseModal}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={handleCloseModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal]}>
+            <Text style={styles.modalText}>
+              {feedback}
+            </Text>
+            <Pressable
+              style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
+              onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
             >
-              <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal]}>
-                  <Text style={styles.modalText}>
-                    {feedback}
-                  </Text>
-                  <Pressable
-                    style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
-                    onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
-                  >
-                    <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
-                  </Pressable>
-                </View>
-              </View>
-            </Modal>
+              <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -168,6 +178,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "darkgrey",
     margin: 20,
+  },
+  speechBubble: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  scenarioText: {
+    fontSize: 18,
+    color: 'black',
   },
   chatContainer: {
     flex: 1,
