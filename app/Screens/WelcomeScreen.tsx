@@ -26,7 +26,7 @@ import {
                 buttonStyle={styles.buttonStyle}
                 containerStyle={styles.buttonContainer}
                 titleStyle={{ fontWeight: 'bold' }}
-                onPress={() => navigation.navigate("PracticeScreen1", {level: 1})}
+                onPress={() => navigation.navigate("EnterQuestionScreen", {level: 1})}
               />
         </View>
         <View style={styles.registerButton} >

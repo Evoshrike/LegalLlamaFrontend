@@ -18,7 +18,7 @@ app.add_middleware(
 class RepeatRequest(BaseModel):
     prompt: str
 
-@app.post("/repeat-response")
+@app.post("/generate-response")
 def repeat_response(request: RepeatRequest):
     return {"response": f"You said: {request.prompt}"}
 
@@ -30,6 +30,10 @@ def categorize_question(request: CategorizeRequest):
         return {"message": "Open-Ended"}
     else:
         return {"message": "Suggestive"}
+    
+@app.get("/generate-question")
+def generate_question():
+    return {"question": "What happened?", "category": "Open-Ended"}
 
 class FeedbackRequest(BaseModel):
     conversation: list

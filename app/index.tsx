@@ -6,9 +6,12 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { enableScreens } from 'react-native-screens';
 import WelcomeScreen from "./Screens/WelcomeScreen";
 import { RootStackParamList } from "./config/types";
-import PracticeScreen1 from "./Screens/PracticeScreen1";
+import PracticeScreen1 from "./Screens/EnterQuestionScreen";
 import TestingScreen from "./Screens/TestingScreen";
-import PracticeScreen2 from "./Screens/PracticeScreen2";
+import PracticeScreen2 from "./Screens/DragSortListScreen";
+import EnterQuestionScreen from "./Screens/EnterQuestionScreen";
+import MultiChoiceScreen from "./Screens/MultiChoiceScreen";
+import DragSortListScreen from "./Screens/DragSortListScreen";
 
 console.log("app loading..");
 enableScreens();
@@ -37,9 +40,10 @@ const App = () => {
       }}
     >
       <Stack.Screen name="Home" component={WelcomeScreen} />
-      <Stack.Screen name="PracticeScreen1" component={PracticeScreen1} />
+      <Stack.Screen name="EnterQuestionScreen" component={EnterQuestionScreen} />
       <Stack.Screen name="TestingScreen" component={TestingScreen} />
-      <Stack.Screen name="PracticeScreen2" component={PracticeScreen2} />
+      <Stack.Screen name="MultiChoiceScreen" component={MultiChoiceScreen} />
+      <Stack.Screen name="DragSortListScreen" component={DragSortListScreen} />
  
     </Stack.Navigator>
 

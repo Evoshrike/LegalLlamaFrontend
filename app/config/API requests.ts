@@ -3,7 +3,7 @@ const onAndroid = true; // Variable for accessing localhost on emulator vs local
 const remote = false; // Variable for accessing remote server vs local server
 
 const url = remote ? 'http://35.179.152.82:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
-import { feedback, q_and_a } from './types';
+import { categorized_question, feedback, q_and_a } from './types';
 
 async function fetchResponse(prompt: string): Promise<string> {
     console.log("fetching response");
@@ -77,6 +77,26 @@ async function categorizeQuestion(question: string): Promise<string> {
     return responseJSON;
 } 
 
-export { fetchResponse, fetchFeedback, categorizeQuestion };
+async function fetchQuestion(): Promise<categorized_question> {
+    
+    const responseURL = url + '/generate-question';
+    const response = await fetch(responseURL, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+       
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+
+    const responseJSON = await response.json();
+    return responseJSON;
+}
+
+export { fetchResponse, fetchFeedback, categorizeQuestion, fetchQuestion };
 export default {};
 

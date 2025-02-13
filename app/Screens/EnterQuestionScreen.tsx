@@ -8,10 +8,10 @@ import { RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { categorizeQuestion } from "../config/API requests";
 
-type Props = NativeStackScreenProps<RootStackParamList, "PracticeScreen1">;
+type Props = NativeStackScreenProps<RootStackParamList, "EnterQuestionScreen">;
 
 
-const PracticeScreen1: React.FC<Props> = ({ navigation, route }) => {
+const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   // For testing purposes, marks all questions as correct (still performs API call)
   // to test navigation. For production, set to false. 
   const alwaysCorrect = true;
@@ -54,11 +54,11 @@ const PracticeScreen1: React.FC<Props> = ({ navigation, route }) => {
         if (level < 4) {
           setQuestion("");
           setPlaceholder("Enter your question");
-          navigation.navigate("PracticeScreen1", { level: level + 1 });
+          navigation.navigate("EnterQuestionScreen", { level: level + 1 });
         } else {
           setQuestion("");
           setPlaceholder("Enter your question");
-          navigation.navigate("PracticeScreen2");
+          navigation.navigate("MultiChoiceScreen");
         }
     }
   };
@@ -207,4 +207,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PracticeScreen1;
+export default EnterQuestionScreen;

@@ -8,9 +8,12 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../config/types";
 import Animated, { Easing, useSharedValue } from 'react-native-reanimated';
 
-type Props = NativeStackScreenProps<RootStackParamList, "PracticeScreen2">;
+// NOTE: As of 13/02, this screen is NOT in the final spec and is hence NOT in use. It is retained here
+// in case it is required in future. It also doesn't work correctly. 
 
-const PracticeScreen2: React.FC<Props> = ({ navigation }) => {
+type Props = NativeStackScreenProps<RootStackParamList, "DragSortListScreen">;
+
+const DragSortListScreen: React.FC<Props> = ({ navigation }) => {
   const [data, setData] = useState([
     { key: "1", label: "Question 1" },
     { key: "2", label: "Question 2" },
@@ -43,7 +46,7 @@ const PracticeScreen2: React.FC<Props> = ({ navigation }) => {
       
         style={[
           styles.optionBox,
-          { backgroundColor: isActive ? "#006400" : "#006400" },
+          { backgroundColor: isActive ? "#006400" : "#006400", },
         ]}
         delayLongPress={10}
         onLongPress={drag}
@@ -125,18 +128,25 @@ const styles = StyleSheet.create({
       },
   container: {
     flex: 1,
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    position: "absolute",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 20,
     backgroundColor: "lightgreen",
   },
   header: {
+    position: "absolute",
     fontSize: 24,
     fontWeight: "bold",
     marginTop: 40,
     marginBottom: 20,
   },
   optionBox: {
+  
     padding: 20,
     marginVertical: 10,
     borderRadius: 10,
@@ -144,6 +154,11 @@ const styles = StyleSheet.create({
 
   },
   listContainer: {
+    position: "absolute",
+    top: 150,
+    bottom: 200,
+    left: 0,
+    right: 0,
     width: "100%",
     height: "50%",
     justifyContent: "center",
@@ -154,50 +169,60 @@ const styles = StyleSheet.create({
     color: "white",
   },
   submitButton: {
+    position: "absolute",
+    top: 600,
+    bottom: 100,
       width: "40%",
       height: 100,
       backgroundColor: colors.transparent,
       marginBottom: 100,
     },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    width: 300,
-    padding: 20,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  correctModal: {
-    backgroundColor: "green",
-  },
-  incorrectModal: {
-    backgroundColor: "red",
-  },
-  modalText: {
-    fontSize: 18,
-    color: "white",
-    marginBottom: 20,
-  },
-  modalButton: {
-    padding: 10,
-    borderRadius: 5,
-  },
-  correctButton: {
-    backgroundColor: "white",
-    color: "green",
-  },
-  incorrectButton: {
-    backgroundColor: "white",
-    color: "red",
-  },
-  buttonText: {
-    color: "green",
-    fontWeight: "bold",
-  },
+    modalOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+      position: "absolute",
+      width: "100%",
+      padding: 20,
+      alignItems: 'center',
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    },
+    correctModal: {
+      backgroundColor: '#4CAF50', 
+    },
+    incorrectModal: {
+      backgroundColor: '#f44336', 
+    },
+    modalText: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      marginBottom: 10,
+    },
+    modalButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 30,
+      borderRadius: 10,
+    },
+    correctButton: {
+      backgroundColor: '#388E3C', 
+    },
+    incorrectButton: {
+      backgroundColor: '#D32F2F', 
+    },
+    buttonText: {
+      color: '#ffffff',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
 });
 
-export default PracticeScreen2;
+export default DragSortListScreen;
