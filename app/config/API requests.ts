@@ -1,11 +1,13 @@
 
 const onAndroid = true; // Variable for accessing localhost on emulator vs local device
-const url = onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000'
+const remote = false; // Variable for accessing remote server vs local server
+
+const url = remote ? 'http://35.179.152.82:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
 import { feedback, q_and_a } from './types';
 
 async function fetchResponse(prompt: string): Promise<string> {
     console.log("fetching response");
-    const responseURL = url + '/repeat-response';
+    const responseURL = url + '/generate-response';
     const requestBody = { prompt: prompt };
 
     const response = await fetch(responseURL, {

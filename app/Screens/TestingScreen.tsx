@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button, ScrollView, StyleSheet, Modal, Pressable
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { fetchFeedback, fetchResponse } from "../config/API requests";
 import { q_and_a, RootStackParamList } from "../config/types";
-import { NativeStackScreenProps } from "react-native-screens/lib/typescript/native-stack/types";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TestingScreen'>;
 
@@ -58,7 +58,7 @@ const TestingScreen: React.FC<Props> = ({navigation, route}) => {
     try {
       const botMessage = await fetchResponse(userMessage);
       displayMessageCharacterByCharacter(botMessage, false);
-      setQAndAPairs([...qAndAPairs, { question: userMessage, answer: botMessage }]);
+      setQAndAPairs([...qAndAPairs, { question: userMessage, response: botMessage }]);
       if (questionCount + 1 === 5) {
         onFifthQuestion();
       }
@@ -96,7 +96,7 @@ const TestingScreen: React.FC<Props> = ({navigation, route}) => {
   async function onFifthQuestion(): Promise<undefined> {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     const feedbackJSON = await fetchFeedback(qAndAPairs);
-    setIsAnswerCorrect(feedbackJSON.isCorrect);
+    setIsAnswerCorrect(feedbackJSON.is_correct);
     setFeedback(feedbackJSON.response);
     setModalVisible(true);
   };

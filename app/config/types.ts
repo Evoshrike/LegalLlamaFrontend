@@ -8,12 +8,12 @@ type RootStackParamList = {
 
 type q_and_a = {
     question: string;
-    answer: string;
+    response: string;
 }
 
 type feedback = {
   response: string;
-  isCorrect: boolean;
+  is_correct: boolean;
 }
 
 type item =  { key: string, label: string }
