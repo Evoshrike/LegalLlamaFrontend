@@ -26,7 +26,7 @@ import {
                 buttonStyle={styles.buttonStyle}
                 containerStyle={styles.buttonContainer}
                 titleStyle={{ fontWeight: 'bold' }}
-                onPress={() => navigation.navigate("EnterQuestionScreen", {level: 1, highscore: 0})}
+                onPress={() => navigation.navigate("MultiChoiceScreen", { highscore: 0, question_type_index: 1 })}
               />
         </View>
         <View style={styles.registerButton} >

@@ -5,16 +5,19 @@ import colors from '../config/colors';
 import { fetchQuestion } from '../config/API requests';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../config/types';
+import EnterQuestionScreen from './EnterQuestionScreen';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MultiChoiceScreen'>;
 
 const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
+  const {question_type_index} = route.params;
   const options = ["Open-Ended", "Directive", "Option Posing", "Suggestive"];
   const [modalVisible, setModalVisible] = React.useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
   const [question, setQuestion] = React.useState("");
   const [category, setCategory] = React.useState("");
   const [highscore, setHighscore] = React.useState(0);
+   const [optionsModalVisible, setOptionsModalVisible] = React.useState(false);
 
   const handleCloseModal = () => {
     setModalVisible(false);
@@ -31,14 +34,31 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const handleAnswer = (isCorrect: boolean) => {
-    setModalVisible(false);
     if (isCorrect){
       setHighscore(highscore + 1);
-      navigation.navigate("Home");
-    } else {
-      setHighscore(0);
-    }
+  } else {
+    setHighscore(0);
+  }};
+
+  const handleQuitGame = () => {
+    setOptionsModalVisible(false);
+    navigation.navigate("Home");
   };
+
+  const handleSettingsPress = () => {
+    setOptionsModalVisible(false);
+    console.log("Settings Pressed");
+  };
+
+  useEffect(() => {
+    handleCloseModal();
+    if (isAnswerCorrect){
+      navigation.navigate("EnterQuestionScreen",
+         { highscore: highscore, 
+          question_type_index: question_type_index, 
+          successiveQuestionCount: 0 });
+    }
+  }, [highscore]);
 
   async function getQuestion() {
     const question = await fetchQuestion();
@@ -54,6 +74,13 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
+      <Pressable style={styles.optionsButton} onPress={() => setOptionsModalVisible(true)}>
+              <View style={styles.optionsIcon}>
+                <View style={styles.bar} />
+                <View style={styles.bar} />
+                <View style={styles.bar} />
+              </View>
+            </Pressable>
       <View style={styles.orangeBox}>
               <Text style={styles.orangeBoxText}>🔥 {highscore}</Text>
             </View>
@@ -99,6 +126,36 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </View>
       </Modal>
+      <Modal
+              animationType="slide"
+              transparent={true}
+              visible={optionsModalVisible}
+              onRequestClose={() => setOptionsModalVisible(false)}
+            >
+              <View style={styles.centeredView}>
+                <View style={styles.optionsModalView}>
+                  <Text style={styles.modalText}>Options</Text>
+                  <Pressable
+                    style={[styles.optionsModalButton, styles.correctButton]}
+                    onPress={() => handleQuitGame()}
+                  >
+                    <Text style={styles.buttonText}>Quit Practice</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.optionsModalButton, styles.correctButton]}
+                    onPress={() => setOptionsModalVisible(false)}
+                  >
+                    <Text style={styles.buttonText}>Resume Practice</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.optionsModalButton, styles.correctButton]}
+                    onPress={() => handleSettingsPress()}
+                  >
+                    <Text style={styles.buttonText}>Settings</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </Modal>
     </View>
   );
 };
@@ -131,7 +188,7 @@ const styles = StyleSheet.create({
   orangeBox: {
     position: 'absolute',
     top: 20,
-    right: 20,
+    right: 70,
     backgroundColor: 'orange',
     padding: 10,
     borderRadius: 10,
@@ -139,6 +196,59 @@ const styles = StyleSheet.create({
   orangeBoxText: {
     fontSize: 18,
     color: 'white',
+  },
+  optionsButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    marginBottom: 50,
+    backgroundColor: 'grey',
+    padding: 10,
+    borderRadius: 10,
+  },
+  optionsIcon: {
+    width: 20,
+    height: 20,
+    justifyContent: 'space-between',
+  },
+  bar: {
+    width: '100%',
+    height: 1.5,
+    backgroundColor: 'white',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  optionsModalButton: {
+    paddingVertical: 10,
+    marginVertical: 10,
+    width: 150,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+  },
+  optionsModalView: {
+    height: 300,
+    width: 300,
+    margin: 20,
+    justifyContent: "center",
+    backgroundColor: "green",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: 'white',
   },
   speechBubble: {
     width: '80%',

@@ -1,9 +1,11 @@
 type RootStackParamList = {
     Home: undefined;
-    EnterQuestionScreen: {level: number, highscore: number};
+    EnterQuestionScreen: {question_type_index: number, highscore: number, successiveQuestionCount: number};
     TestingScreen: { stage: number, };
     DragSortListScreen: undefined;
-    MultiChoiceScreen: {highscore: number};
+    // MultiChoiceScreen does not need question_type_index, it just carries it to pass to 
+    // EnterQuestionScreen.
+    MultiChoiceScreen: {question_type_index: number, highscore: number};
     
   };
 

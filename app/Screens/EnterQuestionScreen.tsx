@@ -13,24 +13,23 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   // For testing purposes, marks all questions as correct (still performs API call)
   // to test navigation. For production, set to false. 
   const alwaysCorrect = true;
-  const { level } = route.params;
+  const { question_type_index, successiveQuestionCount } = route.params;
 
   const questionTypes = ["Open-Ended", "Directive", "Option Posing", "Suggestive"];
-  const questionType = questionTypes[level - 1];
+  const questionType = questionTypes[question_type_index - 1];
   var questionPronoun = "";
-  if (level == 2) {
+  if (question_type_index == 2) {
     questionPronoun = "a";
   } else {
     questionPronoun = "an";
   }
-  const currentType = questionTypes[level - 1];
+  const currentType = questionTypes[question_type_index - 1];
   const [question, setQuestion] = React.useState("");
   const [placeholder, setPlaceholder] = React.useState("Enter your question");
   const [modalVisible, setModalVisible] = React.useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
   const [highscore, setHighscore] = React.useState(0);
-
-  
+  const [optionsModalVisible, setOptionsModalVisible] = React.useState(false);
 
   const handleSubmit = async () => {
     const category = await categorizeQuestion(question);
@@ -45,37 +44,51 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleCloseModal = () => {
     setModalVisible(false);
   };
+
+  
+
   useEffect(() => {
     setHighscore(route.params.highscore);
   }, []);
 
   const handleAnswer = (isCorrect: boolean) => {
-    if (isCorrect){
+    if (isCorrect) {
       setHighscore(highscore + 1);
     } else {
       setHighscore(0);
     }
-  }
+  };
 
+  const handleQuitGame = () => {
+    setOptionsModalVisible(false);
+    navigation.navigate("Home");
+  };
+
+  const handleSettingsPress = () => {
+    setOptionsModalVisible(false);
+    console.log("Settings Pressed");
+  };
 
   useEffect(() => {
     console.log("passing highscore: ", highscore);
     if (!(isAnswerCorrect)) {
       handleCloseModal();
-      setHighscore(0);
       setQuestion("");
       setPlaceholder("Enter your question");
     } else {
       handleCloseModal();
-      if (level < 4) {
+      if (successiveQuestionCount < 1) {
         setQuestion("");
         setPlaceholder("Enter your question");
         
-        navigation.navigate("EnterQuestionScreen", { level: level + 1, highscore: highscore});
+        navigation.navigate("EnterQuestionScreen",
+           { question_type_index: question_type_index + 1, 
+            highscore: highscore, 
+            successiveQuestionCount: successiveQuestionCount + 1 });
       } else {
         setQuestion("");
         setPlaceholder("Enter your question");
-        navigation.navigate("MultiChoiceScreen", { highscore: highscore});
+        navigation.navigate("MultiChoiceScreen", { highscore: highscore, question_type_index: question_type_index + 1});
       }
     }
   }, [highscore]);
@@ -85,6 +98,13 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
       <View style={styles.orangeBox}>
         <Text style={styles.orangeBoxText}>🔥 {highscore}</Text>
       </View>
+      <Pressable style={styles.optionsButton} onPress={() => setOptionsModalVisible(true)}>
+        <View style={styles.optionsIcon}>
+          <View style={styles.bar} />
+          <View style={styles.bar} />
+          <View style={styles.bar} />
+        </View>
+      </Pressable>
       <Text style={styles.header}>Type in {questionPronoun} {questionType} question</Text>
       <TextInput
         style={[styles.textInput]}
@@ -120,6 +140,36 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
               onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
             >
               <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={optionsModalVisible}
+        onRequestClose={() => setOptionsModalVisible(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.optionsModalView}>
+            <Text style={styles.modalText}>Options</Text>
+            <Pressable
+              style={[styles.optionsModalButton, styles.correctButton]}
+              onPress={() => handleQuitGame()}
+            >
+              <Text style={styles.buttonText}>Quit Practice</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.optionsModalButton, styles.correctButton]}
+              onPress={() => setOptionsModalVisible(false)}
+            >
+              <Text style={styles.buttonText}>Resume Practice</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.optionsModalButton, styles.correctButton]}
+              onPress={() => handleSettingsPress()}
+            >
+              <Text style={styles.buttonText}>Settings</Text>
             </Pressable>
           </View>
         </View>
@@ -225,7 +275,7 @@ const styles = StyleSheet.create({
   orangeBox: {
     position: 'absolute',
     top: 20,
-    right: 20,
+    right: 70,
     backgroundColor: 'orange',
     padding: 10,
     borderRadius: 10,
@@ -233,6 +283,59 @@ const styles = StyleSheet.create({
   orangeBoxText: {
     fontSize: 18,
     color: 'white',
+  },
+  optionsButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    marginBottom: 50,
+    backgroundColor: 'grey',
+    padding: 10,
+    borderRadius: 10,
+  },
+  optionsIcon: {
+    width: 20,
+    height: 20,
+    justifyContent: 'space-between',
+  },
+  bar: {
+    width: '100%',
+    height: 1.5,
+    backgroundColor: 'white',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  optionsModalButton: {
+    paddingVertical: 10,
+    marginVertical: 10,
+    width: 150,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+  },
+  optionsModalView: {
+    height: 300,
+    width: 300,
+    margin: 20,
+    justifyContent: "center",
+    backgroundColor: "green",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: 'white',
   },
 });
 
