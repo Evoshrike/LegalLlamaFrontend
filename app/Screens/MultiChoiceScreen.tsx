@@ -14,6 +14,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
   const [question, setQuestion] = React.useState("");
   const [category, setCategory] = React.useState("");
+  const [highscore, setHighscore] = React.useState(0);
 
   const handleCloseModal = () => {
     setModalVisible(false);
@@ -32,7 +33,10 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleAnswer = (isCorrect: boolean) => {
     setModalVisible(false);
     if (isCorrect){
+      setHighscore(highscore + 1);
       navigation.navigate("Home");
+    } else {
+      setHighscore(0);
     }
   };
 
@@ -45,10 +49,14 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     getQuestion();
+    setHighscore(route.params.highscore);
   }, []);
 
   return (
     <View style={styles.container}>
+      <View style={styles.orangeBox}>
+              <Text style={styles.orangeBoxText}>🔥 {highscore}</Text>
+            </View>
       <Text style={styles.header}>Categorize this question</Text>
       <View style={styles.logoContainer}>
                 <Image source = {require("../../assets/images/llama.png")} style={styles.logo}/>
@@ -106,7 +114,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 40,
     fontWeight: 'bold',
-    marginTop: 40,
+    marginTop: 70,
     marginBottom: 20,
   },
   logo: {
@@ -119,6 +127,18 @@ const styles = StyleSheet.create({
     
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  orangeBox: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'orange',
+    padding: 10,
+    borderRadius: 10,
+  },
+  orangeBoxText: {
+    fontSize: 18,
+    color: 'white',
   },
   speechBubble: {
     width: '80%',

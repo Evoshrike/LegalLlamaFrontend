@@ -1,9 +1,9 @@
 type RootStackParamList = {
     Home: undefined;
-    EnterQuestionScreen: {level: number};
-    TestingScreen: { stage: number};
+    EnterQuestionScreen: {level: number, highscore: number};
+    TestingScreen: { stage: number, };
     DragSortListScreen: undefined;
-    MultiChoiceScreen: undefined;
+    MultiChoiceScreen: {highscore: number};
     
   };
 

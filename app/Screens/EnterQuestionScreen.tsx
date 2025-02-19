@@ -1,7 +1,6 @@
-import React from "react";
-import { Text, TextInput, Modal, TouchableOpacity, Pressable} from "react-native";
+import React, { useEffect } from "react";
+import { Text, TextInput, Modal, TouchableOpacity, Pressable } from "react-native";
 import { View, Image, StyleSheet } from "react-native";
-
 import colors from "../config/colors";
 import { Button } from "@rneui/base";
 import { RootStackParamList } from "../config/types";
@@ -10,16 +9,16 @@ import { categorizeQuestion } from "../config/API requests";
 
 type Props = NativeStackScreenProps<RootStackParamList, "EnterQuestionScreen">;
 
-
 const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   // For testing purposes, marks all questions as correct (still performs API call)
   // to test navigation. For production, set to false. 
   const alwaysCorrect = true;
   const { level } = route.params;
+
   const questionTypes = ["Open-Ended", "Directive", "Option Posing", "Suggestive"];
   const questionType = questionTypes[level - 1];
   var questionPronoun = "";
-  if (level == 2){
+  if (level == 2) {
     questionPronoun = "a";
   } else {
     questionPronoun = "an";
@@ -29,6 +28,9 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   const [placeholder, setPlaceholder] = React.useState("Enter your question");
   const [modalVisible, setModalVisible] = React.useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
+  const [highscore, setHighscore] = React.useState(0);
+
+  
 
   const handleSubmit = async () => {
     const category = await categorizeQuestion(question);
@@ -43,34 +45,49 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleCloseModal = () => {
     setModalVisible(false);
   };
+  useEffect(() => {
+    setHighscore(route.params.highscore);
+  }, []);
 
   const handleAnswer = (isCorrect: boolean) => {
-    if (!(isCorrect)) {
+    if (isCorrect){
+      setHighscore(highscore + 1);
+    } else {
+      setHighscore(0);
+    }
+  }
+
+
+  useEffect(() => {
+    console.log("passing highscore: ", highscore);
+    if (!(isAnswerCorrect)) {
       handleCloseModal();
+      setHighscore(0);
       setQuestion("");
       setPlaceholder("Enter your question");
     } else {
-        handleCloseModal();
-        if (level < 4) {
-          setQuestion("");
-          setPlaceholder("Enter your question");
-          navigation.navigate("EnterQuestionScreen", { level: level + 1 });
-        } else {
-          setQuestion("");
-          setPlaceholder("Enter your question");
-          navigation.navigate("MultiChoiceScreen");
-        }
+      handleCloseModal();
+      if (level < 4) {
+        setQuestion("");
+        setPlaceholder("Enter your question");
+        
+        navigation.navigate("EnterQuestionScreen", { level: level + 1, highscore: highscore});
+      } else {
+        setQuestion("");
+        setPlaceholder("Enter your question");
+        navigation.navigate("MultiChoiceScreen", { highscore: highscore});
+      }
     }
-  };
+  }, [highscore]);
 
   return (
     <View style={styles.background}>
+      <View style={styles.orangeBox}>
+        <Text style={styles.orangeBoxText}>🔥 {highscore}</Text>
+      </View>
       <Text style={styles.header}>Type in {questionPronoun} {questionType} question</Text>
       <TextInput
-        style={[
-          styles.textInput,
-          ,
-        ]}
+        style={[styles.textInput]}
         placeholder={placeholder}
         placeholderTextColor="#999"
         value={question}
@@ -128,7 +145,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5", 
+    backgroundColor: "#f5f5f5",
     padding: 16,
   },
   background: {
@@ -149,7 +166,7 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: "bold",
     marginBottom: 50,
-    marginTop: 40,
+    marginTop: 70,
     color: "#004D40",
   },
   modalOverlay: {
@@ -164,10 +181,10 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
   correctModal: {
-    backgroundColor: '#4CAF50', 
+    backgroundColor: '#4CAF50',
   },
   incorrectModal: {
-    backgroundColor: '#f44336', 
+    backgroundColor: '#f44336',
   },
   modalText: {
     fontSize: 20,
@@ -181,10 +198,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   correctButton: {
-    backgroundColor: '#388E3C', 
+    backgroundColor: '#388E3C',
   },
   incorrectButton: {
-    backgroundColor: '#D32F2F', 
+    backgroundColor: '#D32F2F',
   },
   buttonText: {
     color: '#ffffff',
@@ -198,12 +215,24 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     backgroundColor: "white",
     width: "80%",
-    height:"40%",
+    height: "40%",
     borderRadius: 10,
     marginBottom: 20,
     paddingHorizontal: 8,
     textAlignVertical: "top",
     color: "",
+  },
+  orangeBox: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'orange',
+    padding: 10,
+    borderRadius: 10,
+  },
+  orangeBoxText: {
+    fontSize: 18,
+    color: 'white',
   },
 });
 
