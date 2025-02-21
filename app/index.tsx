@@ -12,6 +12,7 @@ import PracticeScreen2 from "./Screens/DragSortListScreen";
 import EnterQuestionScreen from "./Screens/EnterQuestionScreen";
 import MultiChoiceScreen from "./Screens/MultiChoiceScreen";
 import DragSortListScreen from "./Screens/DragSortListScreen";
+import SettingsScreen from "./Screens/SettingsScreen";
 
 console.log("app loading..");
 enableScreens();
@@ -44,7 +45,7 @@ const App = () => {
       <Stack.Screen name="TestingScreen" component={TestingScreen} />
       <Stack.Screen name="MultiChoiceScreen" component={MultiChoiceScreen} />
       <Stack.Screen name="DragSortListScreen" component={DragSortListScreen} />
- 
+      <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
 
   );

@@ -5,7 +5,7 @@ import colors from '../config/colors';
 import { fetchQuestion } from '../config/API requests';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../config/types';
-import EnterQuestionScreen from './EnterQuestionScreen';
+
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MultiChoiceScreen'>;
 
@@ -19,13 +19,16 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   const [highscore, setHighscore] = React.useState(0);
    const [optionsModalVisible, setOptionsModalVisible] = React.useState(false);
 
+
+  // While the classifier is still not set up:
+  const alwaysOpenEnded = true;
   const handleCloseModal = () => {
     setModalVisible(false);
   };
 
   const handleOptionPress = (option: number) => { 
     const optionString = options[option];
-    if (optionString == category) {
+    if (optionString == category || (alwaysOpenEnded && option == 0)) {
       setIsAnswerCorrect(true);
     } else {
       setIsAnswerCorrect(false);
@@ -38,7 +41,10 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
       setHighscore(highscore + 1);
   } else {
     setHighscore(0);
-  }};
+    console.log("correct answer: ", category);
+  }
+  handleCloseModal();
+};
 
   const handleQuitGame = () => {
     setOptionsModalVisible(false);
@@ -47,11 +53,11 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleSettingsPress = () => {
     setOptionsModalVisible(false);
-    console.log("Settings Pressed");
+    navigation.navigate("Settings");
   };
 
   useEffect(() => {
-    handleCloseModal();
+    
     if (isAnswerCorrect){
       navigation.navigate("EnterQuestionScreen",
          { highscore: highscore, 
@@ -64,8 +70,10 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
     const question = await fetchQuestion();
     setQuestion(question.question);
     console.log("question: ", question.question);
+    
     setCategory(question.category);
-  }
+    
+  };
 
   useEffect(() => {
     getQuestion();
@@ -171,12 +179,12 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 40,
     fontWeight: 'bold',
-    marginTop: 70,
-    marginBottom: 20,
+    marginTop: 50,
+    marginBottom: 10,
   },
   logo: {
-    width: 250,
-    height: 250,
+    width: 200,
+    height: 200,
     
   },
   logoContainer: {
@@ -253,7 +261,7 @@ const styles = StyleSheet.create({
   speechBubble: {
     width: '80%',
     padding: 20,
-    marginTop:40,
+    marginTop:30,
     backgroundColor: 'white',
     borderRadius: 10,
     borderWidth: 1,

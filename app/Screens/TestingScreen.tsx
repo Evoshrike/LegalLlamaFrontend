@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Button, ScrollView, StyleSheet, Modal, Pressable } from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, Modal, Pressable, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from "react-native";
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { fetchFeedback, fetchResponse, fetchScenario } from "../config/API requests";
 import { q_and_a, RootStackParamList } from "../config/types";
@@ -37,6 +38,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [scenario, setScenario] = useState<string>("");
 
   const handleSend = () => {
+    Keyboard.dismiss();
     if (questionCount < 5) {
       if (input.trim()) {
         setMessages([...messages, { text: input, isUser: true }]);
@@ -100,12 +102,18 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   async function generateScenario() {
     const scenario = await fetchScenario();
     setScenario(scenario);
+    console.log(scenario);
+    
     
   }
 
   useEffect(() => {
       generateScenario();
     }, []);
+
+  useEffect(() => {
+    displayMessageCharacterByCharacter(scenario, false);
+  }, [scenario]);
 
   const handleCloseModal = () => {
     setModalVisible(false);
@@ -124,17 +132,21 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "padding"} 
+    style={{flex: 1}}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={styles.container}>
+    <KeyboardAwareScrollView style={styles.chatContainer} extraScrollHeight={100}>
       <Text style={styles.header}>Ask 5 questions appropriate for {stage_name}</Text>
       <View style={styles.speechBubble}>
-        <Text style={styles.scenarioText}>Your scenario is: {scenario}</Text>
+        <Text style={styles.scenarioText}>Your scenario is: </Text>
       </View>
       
-      <ScrollView style={styles.chatContainer}>
+      
         {messages.map((message, index) => (
           <ChatMessage key={index} message={message.text} isUser={message.isUser} />
         ))}
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -165,8 +177,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
       </Modal>
     </View>
-  );
-};
+    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>)};
 
 const styles = StyleSheet.create({
   container: {
@@ -187,6 +199,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'gray',
     alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 20,
   },
   scenarioText: {

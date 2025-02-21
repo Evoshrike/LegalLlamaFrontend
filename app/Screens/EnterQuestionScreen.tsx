@@ -66,7 +66,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleSettingsPress = () => {
     setOptionsModalVisible(false);
-    console.log("Settings Pressed");
+    navigation.navigate("Settings");
   };
 
   useEffect(() => {
@@ -106,6 +106,9 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
       </Pressable>
       <Text style={styles.header}>Type in {questionPronoun} {questionType} question</Text>
+      <View style={styles.logoContainer}>
+                      <Image source = {require("../../assets/images/llama.png")} style={styles.logo}/>
+                    </View>
       <TextInput
         style={[styles.textInput]}
         placeholder={placeholder}
@@ -198,6 +201,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     padding: 16,
   },
+  logo: {
+    width: 250,
+    height: 250,
+    
+  },
+  logoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   background: {
     flex: 1,
     flexGrow: 1,
@@ -215,7 +227,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 36,
     fontWeight: "bold",
-    marginBottom: 50,
+    marginBottom: 20,
     marginTop: 70,
     color: "#004D40",
   },
@@ -265,9 +277,10 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     backgroundColor: "white",
     width: "80%",
-    height: "40%",
+    height: "20%",
     borderRadius: 10,
     marginBottom: 20,
+    marginTop: 40,
     paddingHorizontal: 8,
     textAlignVertical: "top",
     color: "",

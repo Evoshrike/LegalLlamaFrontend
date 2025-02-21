@@ -37,7 +37,7 @@ def generate_question():
 
 @app.get("/generate-scenario")
 def generate_scenario():
-    return {"message": "You are in a room with a table and a chair."}
+    return {"Scenario": "You are in a room with a table and a chair."}
 
 class FeedbackRequest(BaseModel):
     conversation: list

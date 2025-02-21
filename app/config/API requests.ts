@@ -2,7 +2,7 @@
 const onAndroid = true; // Variable for accessing localhost on emulator vs local device
 const remote = false; // Variable for accessing remote server vs local server
 
-const url = remote ? 'http://35.179.152.82:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
+const url = remote ? 'http://18.175.217.103:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
 import { categorized_question, feedback, q_and_a } from './types';
 
 async function fetchResponse(prompt: string): Promise<string> {
@@ -115,7 +115,7 @@ async function fetchScenario(): Promise<string> {
     
 
     const responseJSON = await response.json();
-    const scenario = responseJSON.message;
+    const scenario = responseJSON.Scenario;
     return scenario;
 }
 
