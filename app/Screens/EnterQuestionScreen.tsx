@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
-import { Text, TextInput, Modal, TouchableOpacity, Pressable } from "react-native";
+import { Text, TextInput, Modal, TouchableOpacity, Pressable, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Keyboard } from "react-native";
 import { View, Image, StyleSheet } from "react-native";
 import colors from "../config/colors";
 import { Button } from "@rneui/base";
 import { RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { categorizeQuestion } from "../config/API requests";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 type Props = NativeStackScreenProps<RootStackParamList, "EnterQuestionScreen">;
 
@@ -94,6 +95,14 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   }, [highscore]);
 
   return (
+    <KeyboardAvoidingView behavior={Platform.OS == "android" ? "padding" : "height"} style={{ flex: 1 }}>
+        <KeyboardAwareScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1 }}
+          enableOnAndroid={true}
+          extraScrollHeight={Platform.OS === "ios" ? 20 : 0}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={styles.background}>
       <View style={styles.orangeBox}>
         <Text style={styles.orangeBoxText}>🔥 {highscore}</Text>
@@ -117,6 +126,8 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
         onChangeText={setQuestion}
         onFocus={() => setPlaceholder("")}
         onBlur={() => setPlaceholder("Enter your question")}
+        multiline={true}
+        scrollEnabled={true}
       />
       <View style={styles.submitButton}>
         <Button
@@ -178,6 +189,9 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
       </Modal>
     </View>
+    </TouchableWithoutFeedback>
+    </KeyboardAwareScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
