@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Modal, Pressable, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
-import { fetchFeedback, fetchResponse, fetchScenario } from "../config/API requests";
+import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, startSession } from "../config/API requests";
 import { q_and_a, RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -36,6 +36,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
   const [feedback, setFeedback] = React.useState<string | null>(null);
   const [scenario, setScenario] = useState<string>("");
+  const [session_id, setSessionID] = useState(0);
 
   const handleSend = () => {
     Keyboard.dismiss();
@@ -54,7 +55,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const simulateBotResponse = async (userMessage: string) => {
     setBotTyping(true);
     try {
-      const botMessage = await fetchResponse(userMessage);
+      const chat_prompt = { message: userMessage, scenario: scenario, session_id: session_id };
+      const botMessage = await fetchChatResponse(chat_prompt);
       displayMessageCharacterByCharacter(botMessage, false);
       setQAndAPairs([...qAndAPairs, { question: userMessage, response: botMessage }]);
       if (questionCount + 1 === 5) {
@@ -103,12 +105,18 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     const scenario = await fetchScenario();
     setScenario(scenario);
     console.log(scenario);
-    
-    
-  }
+  };
+
+  async function startChatSession() {
+    const session_id = await startSession();
+    setSessionID(session_id);
+  };
+
+
 
   useEffect(() => {
       generateScenario();
+      startChatSession();
     }, []);
 
   useEffect(() => {

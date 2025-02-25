@@ -14,7 +14,10 @@ type q_and_a = {
     question: string;
     response: string;
 }
-
+type chat_request = {
+  message: string; 
+  scenario: string;
+}
 type categorized_question = {
   question: string;
   category: string;
@@ -30,6 +33,6 @@ type item =  { key: string, label: string }
 
 
 
-  export {RootStackParamList, q_and_a, feedback, item, categorized_question};
+  export {RootStackParamList, q_and_a, feedback, item, categorized_question, chat_request};
 
   export default {}
