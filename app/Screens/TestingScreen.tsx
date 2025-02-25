@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Modal, Pressable, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from "react-native";
+import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView } from "react-native";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, startSession } from "../config/API requests";
 import { q_and_a, RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { Button } from "@rneui/base";
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TestingScreen'>;
 
@@ -32,9 +33,9 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [botTyping, setBotTyping] = useState(false);
   const [qAndAPairs, setQAndAPairs] = useState<q_and_a[]>([]);
   const [questionCount, setQuestionCount] = useState(0);
-  const [modalVisible, setModalVisible] = React.useState(false);
-  const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
-  const [feedback, setFeedback] = React.useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
   const [scenario, setScenario] = useState<string>("");
   const [session_id, setSessionID] = useState(0);
 
@@ -112,12 +113,10 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     setSessionID(session_id);
   };
 
-
-
   useEffect(() => {
-      generateScenario();
-      startChatSession();
-    }, []);
+    generateScenario();
+    startChatSession();
+  }, []);
 
   useEffect(() => {
     displayMessageCharacterByCharacter(scenario, false);
@@ -140,53 +139,63 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "padding"} 
-    style={{flex: 1}}>
+    <KeyboardAvoidingView behavior={Platform.OS == "android" ? "padding" : "height"} style={{ flex: 1 }}>
+    <KeyboardAwareScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ flexGrow: 1 }}
+      enableOnAndroid={true}
+      extraScrollHeight={Platform.OS === "ios" ? 20 : 0}
+    >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <View style={styles.container}>
-    <KeyboardAwareScrollView style={styles.chatContainer} extraScrollHeight={100}>
-      <Text style={styles.header}>Ask 5 questions appropriate for {stage_name}</Text>
-      <View style={styles.speechBubble}>
-        <Text style={styles.scenarioText}>Your scenario is: </Text>
-      </View>
-      
-      
-        {messages.map((message, index) => (
-          <ChatMessage key={index} message={message.text} isUser={message.isUser} />
-        ))}
-      </KeyboardAwareScrollView>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={input}
-          onChangeText={setInput}
-          placeholder="Type a message"
-        />
-        <Button title="Send" onPress={handleSend} />
-      </View>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={handleCloseModal}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal]}>
-            <Text style={styles.modalText}>
-              {feedback}
-            </Text>
-            <Pressable
-              style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
-              onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
-            >
-              <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
-            </Pressable>
+        <View style={styles.container}>
+          <Text style={styles.header}>Ask 5 questions appropriate for {stage_name}</Text>
+          <View style={styles.speechBubble}>
+            <Text style={styles.scenarioText}>Your scenario is: </Text>
           </View>
+          <ScrollView style={styles.chatContainer}>
+            {messages.map((message, index) => (
+              <ChatMessage key={index} message={message.text} isUser={message.isUser} />
+            ))}
+          </ScrollView>
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={input}
+              onChangeText={setInput}
+              placeholder="Type a message"
+              multiline={true}
+              scrollEnabled={true}
+            />
+            <View style={styles.buttonContainer}>
+            <Button title="SEND" onPress={handleSend} style={styles.sendButtonStyle} />
+            </View>
+          </View>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={handleCloseModal}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal]}>
+                <Text style={styles.modalText}>
+                  {feedback}
+                </Text>
+                <Pressable
+                  style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
+                  onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
+                >
+                  <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
         </View>
-      </Modal>
-    </View>
-    </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>)};
+      </TouchableWithoutFeedback>
+    </KeyboardAwareScrollView>
+    </KeyboardAvoidingView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -198,6 +207,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "darkgrey",
     margin: 20,
+  },
+  buttonContainer: {
+    borderRadius: 20,
   },
   speechBubble: {
     width: '80%',
@@ -214,6 +226,10 @@ const styles = StyleSheet.create({
   scenarioText: {
     fontSize: 18,
     color: 'black',
+    
+  },
+  sendButtonStyle: {
+    borderRadius: 10,
   },
   chatContainer: {
     flex: 1,
@@ -251,6 +267,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginRight: 10,
+    height: 40,
   },
   modalOverlay: {
     flex: 1,

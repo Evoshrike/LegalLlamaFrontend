@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 200,
     marginHorizontal: 50,
-    marginTop: 60,
+    marginTop: 20,
     alignSelf: "center",
     marginBottom: 100,
   },
@@ -225,7 +225,8 @@ const styles = StyleSheet.create({
     marginBottom: 100,
   },
   header: {
-    fontSize: 36,
+    fontSize: 32,
+    textAlign: "center",
     fontWeight: "bold",
     marginBottom: 20,
     marginTop: 70,
