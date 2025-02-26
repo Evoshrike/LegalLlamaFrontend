@@ -5,7 +5,7 @@ import colors from '../config/colors';
 import { fetchQuestion } from '../config/API requests';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../config/types';
-
+import Icon from 'react-native-vector-icons/Ionicons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MultiChoiceScreen'>;
 
@@ -51,6 +51,10 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation.navigate("Home");
   };
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   const handleSettingsPress = () => {
     setOptionsModalVisible(false);
     navigation.navigate("Settings");
@@ -82,6 +86,10 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
+             <Pressable onPress={handleGoBack} style={styles.backButton}>
+                          <Icon name="arrow-back" size={30} color="black" />
+                        </Pressable>
+                        <Text style={styles.toptext}>Practice Section</Text>
       <Pressable style={styles.optionsButton} onPress={() => setOptionsModalVisible(true)}>
               <View style={styles.optionsIcon}>
                 <View style={styles.bar} />
@@ -182,6 +190,21 @@ const styles = StyleSheet.create({
     marginTop: 50,
     marginBottom: 10,
   },
+  backButton: {
+    position: 'absolute',
+    top: 12,
+    height: 30,
+    width: 30,
+    left: 10,
+    zIndex: 1,
+  },
+  toptext: {
+    position: 'absolute',
+    top: 10,
+    fontSize: 26,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
   logo: {
     width: 200,
     height: 200,
@@ -195,28 +218,28 @@ const styles = StyleSheet.create({
   },
   orangeBox: {
     position: 'absolute',
-    top: 20,
-    right: 70,
+    top: 10,
+    right: 50,
     backgroundColor: 'orange',
     padding: 10,
     borderRadius: 10,
   },
   orangeBoxText: {
-    fontSize: 18,
+    fontSize: 12,
     color: 'white',
   },
   optionsButton: {
     position: 'absolute',
-    top: 20,
-    right: 20,
+    top: 10,
+    right: 10,
     marginBottom: 50,
     backgroundColor: 'grey',
     padding: 10,
     borderRadius: 10,
   },
   optionsIcon: {
-    width: 20,
-    height: 20,
+    width: 15,
+    height: 15,
     justifyContent: 'space-between',
   },
   bar: {

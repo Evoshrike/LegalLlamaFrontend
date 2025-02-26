@@ -6,6 +6,7 @@ import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, startSe
 import { q_and_a, RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Button } from "@rneui/base";
+import Icon from 'react-native-vector-icons/Ionicons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TestingScreen'>;
 
@@ -68,6 +69,10 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       const errorMessage = "There was an error fetching a response. Please try again later.";
       displayMessageCharacterByCharacter(errorMessage, false);
     }
+  };
+
+  const handleGoBack = () => {
+    navigation.goBack();
   };
 
   const displayMessageCharacterByCharacter = (message: string, isUser: boolean) => {
@@ -148,6 +153,10 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
+        <Pressable onPress={handleGoBack} style={styles.backButton}>
+              <Icon name="arrow-back" size={24} color="black" />
+            </Pressable>
+            <Text style={styles.toptext}>Testing Section</Text>
           <Text style={styles.header}>Ask 5 questions appropriate for {stage_name}</Text>
           <View style={styles.speechBubble}>
             <Text style={styles.scenarioText}>Your scenario is: </Text>
@@ -207,11 +216,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "darkgrey",
     margin: 20,
+
   },
   buttonContainer: {
     borderRadius: 20,
+  
+  },
+  backButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 1,
   },
   speechBubble: {
+  
     width: '80%',
     padding: 20,
     backgroundColor: 'white',
@@ -268,6 +286,12 @@ const styles = StyleSheet.create({
     padding: 10,
     marginRight: 10,
     height: 40,
+  },
+  toptext: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    top: 7,
+    textAlign: 'center',
   },
   modalOverlay: {
     flex: 1,

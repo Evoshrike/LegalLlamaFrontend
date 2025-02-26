@@ -7,6 +7,7 @@ import { RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { categorizeQuestion } from "../config/API requests";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Icon from 'react-native-vector-icons/Ionicons';
 
 type Props = NativeStackScreenProps<RootStackParamList, "EnterQuestionScreen">;
 
@@ -65,6 +66,10 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation.navigate("Home");
   };
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   const handleSettingsPress = () => {
     setOptionsModalVisible(false);
     navigation.navigate("Settings");
@@ -104,6 +109,10 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={styles.background}>
+       <Pressable onPress={handleGoBack} style={styles.backButton}>
+                    <Icon name="arrow-back" size={30} color="black" />
+                  </Pressable>
+                  <Text style={styles.toptext}>Practice Section</Text>
       <View style={styles.orangeBox}>
         <Text style={styles.orangeBoxText}>🔥 {highscore}</Text>
       </View>
@@ -197,7 +206,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   buttonStyle: {
-    backgroundColor: "#004D40",
+    backgroundColor: colors.darkGreen,
     borderWidth: 2,
     borderColor: "white",
     borderRadius: 60,
@@ -209,6 +218,19 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignSelf: "center",
     marginBottom: 100,
+    
+  },
+  backButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 1,
+  },
+  toptext: {
+    fontSize: 26,
+    fontWeight: 'bold',
+    top: 7,
+    textAlign: 'center',
   },
   container: {
     flex: 1,
@@ -243,7 +265,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
     marginBottom: 20,
-    marginTop: 70,
+    marginTop: 40,
     color: "#004D40",
   },
   modalOverlay: {
@@ -302,28 +324,28 @@ const styles = StyleSheet.create({
   },
   orangeBox: {
     position: 'absolute',
-    top: 20,
-    right: 70,
+    top: 10,
+    right: 50,
     backgroundColor: 'orange',
     padding: 10,
     borderRadius: 10,
   },
   orangeBoxText: {
-    fontSize: 18,
+    fontSize: 12,
     color: 'white',
   },
   optionsButton: {
     position: 'absolute',
-    top: 20,
-    right: 20,
+    top: 10,
+    right: 10,
     marginBottom: 50,
     backgroundColor: 'grey',
     padding: 10,
     borderRadius: 10,
   },
   optionsIcon: {
-    width: 20,
-    height: 20,
+    width: 15,
+    height: 15,
     justifyContent: 'space-between',
   },
   bar: {

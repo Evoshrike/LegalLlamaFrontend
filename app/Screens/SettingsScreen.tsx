@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text,Switch, StyleSheet, Animated } from 'react-native';
+import { View, Text,Switch, StyleSheet, Animated, Pressable } from 'react-native';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../config/types';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 import { Button } from "@rneui/base";
 import colors from '../config/colors';
@@ -24,6 +25,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     const handleHomePress = () => {
         navigation.navigate("Home");
     };
+
+    const handleGoBack = () => {
+        navigation.goBack();
+      };
         
 
     const toggleSwitch = (option: boolean, setOption: React.Dispatch<React.SetStateAction<boolean>>, animatedValue: Animated.Value) => {
@@ -61,6 +66,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
+              <Pressable onPress={handleGoBack} style={styles.backButton}>
+                                <Icon name="arrow-back" size={30} color="black" />
+                              </Pressable>
             <Text style={styles.header}>Settings Screen</Text>
             <View style={styles.optionContainer}>
                 <Text>Option 1</Text>
@@ -112,17 +120,25 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'lightgreen',
-        padding: 20,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
     },
     buttonContainer: {},
     buttonStyle: {
         borderRadius: 10,
     },
+    backButton: {
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        zIndex: 1,
+      },
     header: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: 'darkgreen',
+        color: 'black',
         marginBottom: 20,
+        textAlign: 'center',
     },
     homeButtonStyle: {
         backgroundColor: "#004D40",
