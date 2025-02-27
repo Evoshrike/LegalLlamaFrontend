@@ -110,7 +110,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={styles.background}>
        <Pressable onPress={handleGoBack} style={styles.backButton}>
-                    <Icon name="arrow-back" size={30} color="black" />
+                    <Icon name="arrow-back" size={30} color={colors.darkText} />
                   </Pressable>
                   <Text style={styles.toptext}>Practice Section</Text>
       <View style={styles.orangeBox}>
@@ -206,9 +206,9 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   buttonStyle: {
-    backgroundColor: colors.darkGreen,
+    backgroundColor: colors.button,
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: colors.outline,
     borderRadius: 60,
   },
   buttonContainer: {
@@ -227,14 +227,14 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   toptext: {
-    fontSize: 26,
+    fontSize: 22,
     fontWeight: 'bold',
     top: 7,
     textAlign: 'center',
   },
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.background,
     padding: 16,
   },
   logo: {
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "lightgreen",
+    backgroundColor: colors.background,
     top: 0,
   },
   submitButton: {
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     marginBottom: 100,
   },
   header: {
-    fontSize: 32,
+    fontSize: 24,
     textAlign: "center",
     fontWeight: "bold",
     marginBottom: 20,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.transparent,
   },
   modalContent: {
     padding: 20,
@@ -280,15 +280,15 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
   correctModal: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.correct,
   },
   incorrectModal: {
-    backgroundColor: '#f44336',
+    backgroundColor: colors.incorrect,
   },
   modalText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.lightText,
     marginBottom: 10,
   },
   modalButton: {
@@ -297,13 +297,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   correctButton: {
-    backgroundColor: '#388E3C',
+    backgroundColor: colors.correctButton,
   },
   incorrectButton: {
-    backgroundColor: '#D32F2F',
+    backgroundColor: colors.incorrectButton,
   },
   buttonText: {
-    color: '#ffffff',
+    color: colors.lightText,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -311,8 +311,8 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     padding: 10,
     borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: "white",
+    borderColor: colors.inputBorder,
+    backgroundColor: colors.inputBackground,
     width: "80%",
     height: "20%",
     borderRadius: 10,
@@ -326,20 +326,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 50,
-    backgroundColor: 'orange',
+    backgroundColor: colors.highStreakBackground,
     padding: 10,
     borderRadius: 10,
   },
   orangeBoxText: {
     fontSize: 12,
-    color: 'white',
+    color: colors.lightText,
   },
   optionsButton: {
     position: 'absolute',
     top: 10,
     right: 10,
     marginBottom: 50,
-    backgroundColor: 'grey',
+    backgroundColor: colors.optionsBackground,
     padding: 10,
     borderRadius: 10,
   },
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   bar: {
     width: '100%',
     height: 1.5,
-    backgroundColor: 'white',
+    backgroundColor: colors.lightText,
   },
   centeredView: {
     flex: 1,
@@ -372,11 +372,11 @@ const styles = StyleSheet.create({
     width: 300,
     margin: 20,
     justifyContent: "center",
-    backgroundColor: "green",
+    backgroundColor: colors.optionsMenuBackground,
     borderRadius: 20,
     padding: 35,
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 2
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: colors.outline,
   },
 });
 

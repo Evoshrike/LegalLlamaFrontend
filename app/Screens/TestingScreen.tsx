@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView } from "react-native";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
-import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, startSession } from "../config/API requests";
+import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, fetchTestingFeedback, startSession } from "../config/API requests";
 import { q_and_a, RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Button } from "@rneui/base";
@@ -10,9 +10,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TestingScreen'>;
 
-const ChatMessage: React.FC<{ message: string; isUser: boolean }> = ({ message, isUser }) => {
+const ChatMessage: React.FC<{ message: string; isUser: number }> = ({ message, isUser }) => {
   return (
-    <View style={[styles.messageContainer, isUser ? styles.userMessage : styles.botMessage]}>
+    <View style={[styles.messageContainer, isUser === 1 ? styles.userMessage : (isUser === 0 ? styles.botMessage : styles.feedbackMessage)]}>
       <Text style={isUser ? styles.userMessageText : styles.botMessageText}>{message}</Text>
     </View>
   );
@@ -29,7 +29,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const { stage } = route.params;
   const stage_name = stageList[stage - 1];
 
-  const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
+  const [messages, setMessages] = useState<{ text: string; isUser: number }[]>([]);
   const [input, setInput] = useState("");
   const [botTyping, setBotTyping] = useState(false);
   const [qAndAPairs, setQAndAPairs] = useState<q_and_a[]>([]);
@@ -39,12 +39,14 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [scenario, setScenario] = useState<string>("");
   const [session_id, setSessionID] = useState(0);
+  const [lastQuestion, setLastQuestion] = useState("");
 
   const handleSend = () => {
     Keyboard.dismiss();
     if (questionCount < 5) {
       if (input.trim()) {
-        setMessages([...messages, { text: input, isUser: true }]);
+        setLastQuestion(input);
+        setMessages([...messages, { text: input, isUser: 1 }]);
         setInput("");
         simulateBotResponse(input);
         setQuestionCount(questionCount + 1);
@@ -59,7 +61,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       const chat_prompt = { message: userMessage, scenario: scenario, session_id: session_id };
       const botMessage = await fetchChatResponse(chat_prompt);
-      displayMessageCharacterByCharacter(botMessage, false);
+      displayMessageCharacterByCharacter(botMessage, 0);
       setQAndAPairs([...qAndAPairs, { question: userMessage, response: botMessage }]);
       if (questionCount + 1 === 5) {
         onFifthQuestion();
@@ -67,15 +69,15 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     } catch (error) {
       console.error("Error fetching bot response:", error);
       const errorMessage = "There was an error fetching a response. Please try again later.";
-      displayMessageCharacterByCharacter(errorMessage, false);
+      displayMessageCharacterByCharacter(errorMessage, 0);
     }
   };
 
   const handleGoBack = () => {
     navigation.goBack();
   };
-
-  const displayMessageCharacterByCharacter = (message: string, isUser: boolean) => {
+  // isUser == 0: bot, isUser == 1: user, isUser == -1: feedback
+  const displayMessageCharacterByCharacter = (message: string, isUser: number) => {
     let currentText = "";
     let index = 0;
 
@@ -96,7 +98,42 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         clearInterval(interval);
         setBotTyping(false);
       }
-    }, 50);
+    }, 10);
+  };
+
+  async function onEachQuestion() {
+    if (questionCount != 0){
+      const last_QApair = qAndAPairs[qAndAPairs.length - 1];
+      const testing_feedback_input = { question_1: last_QApair.question, response: last_QApair.response, question_2: lastQuestion };
+      const testing_feedback = await fetchTestingFeedback(testing_feedback_input);
+      const context_switch = testing_feedback.context_switch;
+      const q_type = testing_feedback.q_type
+      const q_stage = testing_feedback.q_stage;
+      const wrong_stage = (q_stage != stage);
+      var message = "";
+      if (context_switch) {
+        message += "You have switched context. Please avoid doing so unless prompted by the interviewee.";
+      }
+      if (wrong_stage) {
+        if (context_switch) {
+          message += " Also, y";
+        } else {
+          message += "Y";
+        }
+        message += "ou have asked a question that is not appropriate for this stage. Your question is for stage " + q_stage + " but we are currently in stage " + stage + ".";
+      }
+      if (q_type == "Suggestive"){
+        if (context_switch || wrong_stage){
+          message += " Also, p";
+        } else {
+          message += "P";
+        }
+        message += " lease avoid asking suggestive questions.";
+      }
+      if (message.length > 0) {
+        displayMessageCharacterByCharacter(message, -1);
+      }
+    } else {}
   };
 
   async function onFifthQuestion(): Promise<undefined> {
@@ -124,7 +161,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
-    displayMessageCharacterByCharacter(scenario, false);
+    displayMessageCharacterByCharacter(scenario, 0);
   }, [scenario]);
 
   const handleCloseModal = () => {
@@ -231,6 +268,7 @@ const styles = StyleSheet.create({
   speechBubble: {
   
     width: '80%',
+    height: '10%',
     padding: 20,
     backgroundColor: 'white',
     borderRadius: 10,
@@ -292,6 +330,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     top: 7,
     textAlign: 'center',
+  },
+  feedbackMessage: {
+    backgroundColor: "#ADD8E6",
   },
   modalOverlay: {
     flex: 1,

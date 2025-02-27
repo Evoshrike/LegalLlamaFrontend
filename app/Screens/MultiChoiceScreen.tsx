@@ -6,6 +6,7 @@ import { fetchQuestion } from '../config/API requests';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../config/types';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { GestureHandlerRootView, NativeViewGestureHandler, ScrollView } from 'react-native-gesture-handler';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MultiChoiceScreen'>;
 
@@ -85,9 +86,10 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   }, []);
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <View style={styles.container}>
              <Pressable onPress={handleGoBack} style={styles.backButton}>
-                          <Icon name="arrow-back" size={30} color="black" />
+                          <Icon name="arrow-back" size={30} color={colors.darkText} />
                         </Pressable>
                         <Text style={styles.toptext}>Practice Section</Text>
       <Pressable style={styles.optionsButton} onPress={() => setOptionsModalVisible(true)}>
@@ -103,10 +105,10 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
       <Text style={styles.header}>Categorize this question</Text>
       <View style={styles.logoContainer}>
                 <Image source = {require("../../assets/images/llama.png")} style={styles.logo}/>
-              </View>
-      <View style={styles.speechBubble}>
-        <Text style={styles.questionText}>{question}</Text>
-      </View>
+              </View>       
+        <ScrollView style={styles.speechBubble} contentContainerStyle={{alignItems: 'center'}}>
+          <Text style={styles.questionText}>{question}</Text>
+        </ScrollView>
       <View style={styles.optionsContainer}>
         <TouchableOpacity style={styles.optionBox} onPress={() => handleOptionPress(0)}>
           <Text style={styles.optionText}>{options[0]}</Text>
@@ -173,19 +175,20 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </Modal>
     </View>
+    </GestureHandlerRootView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'lightgreen',
+    backgroundColor: colors.background,
     padding: 20,
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   header: {
-    fontSize: 40,
+    fontSize: 24,
     fontWeight: 'bold',
     marginTop: 50,
     marginBottom: 10,
@@ -201,7 +204,8 @@ const styles = StyleSheet.create({
   toptext: {
     position: 'absolute',
     top: 10,
-    fontSize: 26,
+    fontSize: 22,
+  
     fontWeight: 'bold',
     textAlign: 'center',
   },
@@ -220,20 +224,20 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 50,
-    backgroundColor: 'orange',
+    backgroundColor: colors.highStreakBackground,
     padding: 10,
     borderRadius: 10,
   },
   orangeBoxText: {
     fontSize: 12,
-    color: 'white',
+    color: colors.lightText,
   },
   optionsButton: {
     position: 'absolute',
     top: 10,
     right: 10,
     marginBottom: 50,
-    backgroundColor: 'grey',
+    backgroundColor: colors.optionsBackground,
     padding: 10,
     borderRadius: 10,
   },
@@ -245,7 +249,7 @@ const styles = StyleSheet.create({
   bar: {
     width: '100%',
     height: 1.5,
-    backgroundColor: 'white',
+    backgroundColor: colors.lightText,
   },
   centeredView: {
     flex: 1,
@@ -266,11 +270,11 @@ const styles = StyleSheet.create({
     width: 300,
     margin: 20,
     justifyContent: "center",
-    backgroundColor: "green",
+    backgroundColor: colors.optionsMenuBackground,
     borderRadius: 20,
     padding: 35,
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: colors.shadow,
     shadowOffset: {
       width: 0,
       height: 2
@@ -279,22 +283,24 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: colors.outline,
   },
   speechBubble: {
     width: '80%',
     padding: 20,
     marginTop:30,
-    backgroundColor: 'white',
+    backgroundColor: colors.inputBackground,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'gray',
-    alignItems: 'center',
+    borderColor: colors.inputBorder,
+  
     marginBottom: 20,
+    
   },
   questionText: {
     fontSize: 18,
-    color: 'black',
+    color: colors.darkText,
+
   },
   optionsContainer: {
     flexDirection: 'row',
@@ -308,7 +314,7 @@ const styles = StyleSheet.create({
     width: '48%',
     padding: 20,
     height: 100,
-    backgroundColor: '#006400',
+    backgroundColor: colors.optionBoxBackground,
     justifyContent: 'center',
     borderRadius: 10,
     alignItems: 'center',
@@ -316,7 +322,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 18,
-    color: 'white',
+    color: colors.lightText,
   },
   submitButtonContainer: {
     width: '80%',
@@ -334,7 +340,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: colors.transparent,
   },
   modalContent: {
     padding: 20,
@@ -343,15 +349,15 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
   },
   correctModal: {
-    backgroundColor: '#4CAF50', 
+    backgroundColor: colors.correct, 
   },
   incorrectModal: {
-    backgroundColor: '#f44336', 
+    backgroundColor: colors.incorrect, 
   },
   modalText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.lightText,
     marginBottom: 10,
   },
   modalButton: {
@@ -360,13 +366,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   correctButton: {
-    backgroundColor: '#388E3C', 
+    backgroundColor: colors.correctButton, 
   },
   incorrectButton: {
-    backgroundColor: '#D32F2F', 
+    backgroundColor: colors.incorrectButton, 
   },
   buttonText: {
-    color: '#ffffff',
+    color: colors.lightText,
     fontSize: 16,
     fontWeight: 'bold',
   },

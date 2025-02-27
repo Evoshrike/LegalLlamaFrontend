@@ -3,7 +3,7 @@ const onAndroid = true; // Variable for accessing localhost on emulator vs local
 const remote = true; // Variable for accessing remote server vs local server
 
 const url = remote ? 'http://18.175.217.103:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
-import { categorized_question, chat_request, feedback, q_and_a } from './types';
+import { categorized_question, chat_request, feedback, q_and_a, testing_feedback, testing_feedback_input } from './types';
 
 async function fetchResponse(prompt: string): Promise<string> {
     console.log("fetching response");
@@ -100,6 +100,30 @@ async function categorizeQuestion(question: string): Promise<string> {
     return responseJSON;
 } 
 
+async function fetchTestingFeedback(conversation: testing_feedback_input): Promise<testing_feedback> {
+    console.log("fetching Testing feedback");
+    const responseURL = url + '/testing-feedback';
+    
+    const requestBody = conversation;
+    console.log(requestBody);
+
+    const response = await fetch(responseURL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+
+    const responseJSON = await response.json();
+    return responseJSON;
+} 
+
 async function fetchQuestion(): Promise<categorized_question> {
     
     const responseURL = url + '/generate-question';
@@ -117,6 +141,7 @@ async function fetchQuestion(): Promise<categorized_question> {
     
 
     const responseJSON = await response.json();
+    console.log("category: ", responseJSON.category);
     return responseJSON;
 }
 
@@ -165,6 +190,6 @@ async function startSession(): Promise<number> {
     return session_id;
 }
 
-export { fetchResponse, fetchFeedback, categorizeQuestion, fetchQuestion, fetchScenario, startSession, fetchChatResponse };
+export { fetchResponse, fetchFeedback, categorizeQuestion, fetchQuestion, fetchScenario, startSession, fetchChatResponse, fetchTestingFeedback };
 export default {};
 

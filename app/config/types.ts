@@ -28,11 +28,24 @@ type feedback = {
   is_correct: boolean;
 }
 
+type testing_feedback_input = {
+  question_1: string;
+  response: string;
+  question_2: string;
+};
+
+type testing_feedback = {
+  q_type: string;
+  q_stage: number;
+  context_switch: boolean;
+}
+
 type item =  { key: string, label: string }
 
 
 
 
-  export {RootStackParamList, q_and_a, feedback, item, categorized_question, chat_request};
+  export {RootStackParamList, q_and_a, feedback, item, 
+    categorized_question, chat_request, testing_feedback_input, testing_feedback};
 
   export default {}
