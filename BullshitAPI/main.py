@@ -21,7 +21,6 @@ class RepeatRequest(BaseModel):
 @app.post("/generate-response")
 def repeat_response(request: RepeatRequest):
     return {"response": f"You said: {request.prompt}"}
-
 class CategorizeRequest(BaseModel):
     question: str
 @app.post("/categorize-question")
@@ -30,6 +29,7 @@ def categorize_question(request: CategorizeRequest):
         return {"message": "Open-Ended"}
     else:
         return {"message": "Suggestive"}
+    
     
 @app.get("/generate-question")
 def generate_question():

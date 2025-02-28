@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView, Animated } from "react-native";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, fetchTestingFeedback, startSession } from "../config/API requests";
@@ -7,6 +7,7 @@ import { q_and_a, RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Button } from "@rneui/base";
 import Icon from 'react-native-vector-icons/Ionicons';
+import colors from "../config/colors";
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TestingScreen'>;
 
@@ -14,6 +15,44 @@ const ChatMessage: React.FC<{ message: string; isUser: number }> = ({ message, i
   return (
     <View style={[styles.messageContainer, isUser === 1 ? styles.userMessage : (isUser === 0 ? styles.botMessage : styles.feedbackMessage)]}>
       <Text style={isUser ? styles.userMessageText : styles.botMessageText}>{message}</Text>
+    </View>
+  );
+};
+
+const TypingIndicator: React.FC = () => {
+  const dot1 = useRef(new Animated.Value(0)).current;
+  const dot2 = useRef(new Animated.Value(0)).current;
+  const dot3 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animateDot = (dot: Animated.Value, delay: number) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(dot, {
+            toValue: -5,
+            duration: 300,
+            useNativeDriver: true,
+            delay,
+          }),
+          Animated.timing(dot, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    };
+
+    animateDot(dot1, 0);
+    animateDot(dot2, 150);
+    animateDot(dot3, 300);
+  }, [dot1, dot2, dot3]);
+
+  return (
+    <View style={styles.typingIndicator}>
+      <Animated.View style={[styles.dot, { transform: [{ translateY: dot1 }] }]} />
+      <Animated.View style={[styles.dot, { transform: [{ translateY: dot2 }] }]} />
+      <Animated.View style={[styles.dot, { transform: [{ translateY: dot3 }] }]} />
     </View>
   );
 };
@@ -40,6 +79,9 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [scenario, setScenario] = useState<string>("");
   const [session_id, setSessionID] = useState(0);
   const [lastQuestion, setLastQuestion] = useState("");
+  const [networkErrorModalVisible, setNetworkErrorModalVisible] = React.useState(false);
+  const [waitingForResponse, setWaitingForResponse] = React.useState(false); 
+  
 
   const handleSend = () => {
     Keyboard.dismiss();
@@ -60,7 +102,9 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     setBotTyping(true);
     try {
       const chat_prompt = { message: userMessage, scenario: scenario, session_id: session_id };
+      setWaitingForResponse(true);
       const botMessage = await fetchChatResponse(chat_prompt);
+      setWaitingForResponse(false);
       displayMessageCharacterByCharacter(botMessage, 0);
       setQAndAPairs([...qAndAPairs, { question: userMessage, response: botMessage }]);
       if (questionCount + 1 === 5) {
@@ -102,57 +146,77 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   async function onEachQuestion() {
-    if (questionCount != 0){
-      const last_QApair = qAndAPairs[qAndAPairs.length - 1];
-      const testing_feedback_input = { question_1: last_QApair.question, response: last_QApair.response, question_2: lastQuestion };
-      const testing_feedback = await fetchTestingFeedback(testing_feedback_input);
-      const context_switch = testing_feedback.context_switch;
-      const q_type = testing_feedback.q_type
-      const q_stage = testing_feedback.q_stage;
-      const wrong_stage = (q_stage != stage);
-      var message = "";
-      if (context_switch) {
-        message += "You have switched context. Please avoid doing so unless prompted by the interviewee.";
-      }
-      if (wrong_stage) {
+    try {
+      if (questionCount != 0){
+        const last_QApair = qAndAPairs[qAndAPairs.length - 1];
+        const testing_feedback_input = { question_1: last_QApair.question, response: last_QApair.response, question_2: lastQuestion };
+        const testing_feedback = await fetchTestingFeedback(testing_feedback_input);
+        const context_switch = testing_feedback.context_switch;
+        const q_type = testing_feedback.q_type
+        const q_stage = testing_feedback.q_stage;
+        const wrong_stage = (q_stage != stage);
+        var message = "";
         if (context_switch) {
-          message += " Also, y";
-        } else {
-          message += "Y";
+          message += "You have switched context. Please avoid doing so unless prompted by the interviewee.";
+        };
+        if (wrong_stage) {
+          if (context_switch) {
+            message += " Also, y";
+          } else {
+            message += "Y";
+          };
+          message += "ou have asked a question that is not appropriate for this stage. Your question is for stage " + q_stage + " but we are currently in stage " + stage + ".";
+        };
+        if (q_type == "Suggestive"){
+          if (context_switch || wrong_stage){
+            message += " Also, p";
+          } else {
+            message += "P";
+          };
+          message += " lease avoid asking suggestive questions.";
         }
-        message += "ou have asked a question that is not appropriate for this stage. Your question is for stage " + q_stage + " but we are currently in stage " + stage + ".";
-      }
-      if (q_type == "Suggestive"){
-        if (context_switch || wrong_stage){
-          message += " Also, p";
-        } else {
-          message += "P";
-        }
-        message += " lease avoid asking suggestive questions.";
-      }
-      if (message.length > 0) {
-        displayMessageCharacterByCharacter(message, -1);
-      }
-    } else {}
+        if (message.length > 0) {
+          displayMessageCharacterByCharacter(message, -1);
+        };
+      };
+    } catch (error) {
+      setNetworkErrorModalVisible(true);
+    }
   };
 
   async function onFifthQuestion(): Promise<undefined> {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    const feedbackJSON = await fetchFeedback(qAndAPairs);
-    setIsAnswerCorrect(feedbackJSON.is_correct);
-    setFeedback(feedbackJSON.response);
-    setModalVisible(true);
+    try {
+      setWaitingForResponse(true);
+      const feedbackJSON = await fetchFeedback(qAndAPairs);
+      setWaitingForResponse(false);
+      setIsAnswerCorrect(feedbackJSON.is_correct);
+      setFeedback(feedbackJSON.response);
+      setModalVisible(true);
+    } catch (error) {
+      setNetworkErrorModalVisible(true);
+    };
+   
   };
 
   async function generateScenario() {
-    const scenario = await fetchScenario();
-    setScenario(scenario);
-    console.log(scenario);
+    try {
+      setWaitingForResponse(true);
+      const scenario = await fetchScenario();
+      setWaitingForResponse(false);
+      setScenario(scenario);
+      console.log(scenario);
+    } catch (error) {
+      setNetworkErrorModalVisible(true);
   };
+};
 
   async function startChatSession() {
-    const session_id = await startSession();
-    setSessionID(session_id);
+    try {
+      const session_id = await startSession();
+      setSessionID(session_id);
+    } catch (error) {
+      setNetworkErrorModalVisible(true);
+    };
   };
 
   useEffect(() => {
@@ -168,6 +232,11 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     setModalVisible(false);
   };
 
+  const handleHomePress = () => {
+    setNetworkErrorModalVisible(false);
+    navigation.navigate("Home");
+  };
+
   const handleAnswer = (isCorrect: boolean) => {
     setModalVisible(false);
     if (isCorrect) {
@@ -177,7 +246,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setIsAnswerCorrect(null);
       setFeedback(null);
       navigation.navigate("TestingScreen", { stage: stage + 1 });
-    }
+    };
   };
 
   return (
@@ -202,6 +271,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
             {messages.map((message, index) => (
               <ChatMessage key={index} message={message.text} isUser={message.isUser} />
             ))}
+            {waitingForResponse && <TypingIndicator />}
           </ScrollView>
           <View style={styles.inputContainer}>
             <TextInput
@@ -236,6 +306,30 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </View>
           </Modal>
+           <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={networkErrorModalVisible}
+                    onRequestClose={() => setNetworkErrorModalVisible(false)}
+                  >
+                    <View style={styles.centeredView}>
+                      <View style={styles.optionsModalView}>
+                        <Text style={styles.modalText}>Network Error</Text>
+                        <Pressable
+                          style={[styles.optionsModalButton, styles.correctButton]}
+                          onPress={() => setNetworkErrorModalVisible(false)}
+                        >
+                          <Text style={styles.buttonText}>Retry</Text>
+                        </Pressable>
+                        <Pressable
+                          style={[styles.optionsModalButton, styles.correctButton]}
+                          onPress={() => handleHomePress()}
+                        >
+                          <Text style={styles.buttonText}>Home</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  </Modal>
         </View>
       </TouchableWithoutFeedback>
     </KeyboardAwareScrollView>
@@ -300,6 +394,40 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     backgroundColor: "#007AFF",
   },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  optionsModalButton: {
+      paddingVertical: 10,
+      marginVertical: 10,
+      width: 150,
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 10,
+    },
+    optionsModalView: {
+      height: 300,
+      width: 300,
+      margin: 20,
+      justifyContent: "center",
+      backgroundColor: colors.optionsMenuBackground,
+      borderRadius: 20,
+      padding: 35,
+      alignItems: "center",
+      shadowColor: colors.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+      borderWidth: 2,
+      borderColor: colors.outline,
+    },
   botMessage: {
     alignSelf: "flex-start",
     backgroundColor: "#e5e5ea",
@@ -372,6 +500,19 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  typingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#000',
+    marginHorizontal: 2,
   },
 });
 

@@ -1,6 +1,7 @@
 
 const onAndroid = true; // Variable for accessing localhost on emulator vs local device
 const remote = true; // Variable for accessing remote server vs local server
+const timeout = 5000; // Timeout for API requests
 
 const url = remote ? 'http://18.175.217.103:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
 import { categorized_question, chat_request, feedback, q_and_a, testing_feedback, testing_feedback_input } from './types';
@@ -10,13 +11,20 @@ async function fetchResponse(prompt: string): Promise<string> {
     const responseURL = url + '/generate-response';
     const requestBody = { prompt: prompt };
 
-    const response = await fetch(responseURL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-    });
+     // Create a timeout promise, race against response promise, throw err if no response in 5s
+     const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Network timeout')), timeout) 
+    );
+    const response = await Promise.race([
+        fetch(responseURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        }),
+        timeoutPromise
+    ]);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -33,13 +41,20 @@ async function fetchChatResponse(prompt: chat_request): Promise<string> {
     const responseURL = url + '/chat';
     const requestBody = prompt;
 
-    const response = await fetch(responseURL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-    });
+     // Create a timeout promise, race against response promise, throw err if no response in 5s
+     const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Network timeout')), timeout) 
+    );
+    const response = await Promise.race([
+        fetch(responseURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        }),
+        timeoutPromise
+    ]);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -58,13 +73,20 @@ async function fetchFeedback(conversation: Array<q_and_a>): Promise<feedback> {
     const requestBody = { conversation: conversation };
     console.log(requestBody);
 
-    const response = await fetch(responseURL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-    });
+     // Create a timeout promise, race against response promise, throw err if no response in 5s
+     const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Network timeout')), timeout) 
+    );
+    const response = await Promise.race([
+        fetch(responseURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        }),
+        timeoutPromise
+    ]);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -76,19 +98,24 @@ async function fetchFeedback(conversation: Array<q_and_a>): Promise<feedback> {
 } 
 
 async function categorizeQuestion(question: string): Promise<string> {
-    
+    console.log("categorising q")
     const responseURL = url + '/categorize-question';
-    
     const requestBody = { question: question};
     
-
-    const response = await fetch(responseURL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-    });
+     // Create a timeout promise, race against response promise, throw err if no response in 5s
+     const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Network timeout')), timeout) 
+    );
+    const response = await Promise.race([
+        fetch(responseURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        }),
+        timeoutPromise
+    ]);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -107,13 +134,20 @@ async function fetchTestingFeedback(conversation: testing_feedback_input): Promi
     const requestBody = conversation;
     console.log(requestBody);
 
-    const response = await fetch(responseURL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-    });
+        // Create a timeout promise, race against response promise, throw err if no response in 5s
+        const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Network timeout')), timeout) 
+        );
+        const response = await Promise.race([
+            fetch(responseURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            }),
+            timeoutPromise
+        ]);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -125,23 +159,29 @@ async function fetchTestingFeedback(conversation: testing_feedback_input): Promi
 } 
 
 async function fetchQuestion(): Promise<categorized_question> {
-    
+    console.log("fetching q");
     const responseURL = url + '/generate-question';
-    const response = await fetch(responseURL, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-       
-    });
+
+    // Create a timeout promise, race against response promise, throw err if no response in 5s
+    const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Network timeout')), timeout) 
+    );
+    const response = await Promise.race([
+        fetch(responseURL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        }),
+        timeoutPromise
+    ]);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
 
     const responseJSON = await response.json();
-    console.log("category: ", responseJSON.category);
+    console.log("response: ", responseJSON);
     return responseJSON;
 }
 
@@ -149,13 +189,19 @@ async function fetchScenario(): Promise<string> {
     
     const responseURL = url + '/generate-scenario';
 
-    const response = await fetch(responseURL, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        
-    });
+     // Create a timeout promise, race against response promise, throw err if no response in 5s
+     const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Network timeout')), timeout) 
+    );
+    const response = await Promise.race([
+        fetch(responseURL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        }),
+        timeoutPromise
+    ]);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -171,13 +217,19 @@ async function startSession(): Promise<number> {
     
     const responseURL = url + '/start-session';
 
-    const response = await fetch(responseURL, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        
-    });
+    // Create a timeout promise, race against response promise, throw err if no response in 5s
+    const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Network timeout')), timeout) 
+    );
+    const response = await Promise.race([
+        fetch(responseURL, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        }),
+        timeoutPromise
+    ]);
 
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

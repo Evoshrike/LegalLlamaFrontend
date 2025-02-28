@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Text, TextInput, Modal, TouchableOpacity, Pressable, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Keyboard } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Text, TextInput, Modal, TouchableOpacity, Pressable, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Keyboard, Animated } from "react-native";
 import { View, Image, StyleSheet } from "react-native";
 import colors from "../config/colors";
 import { Button } from "@rneui/base";
@@ -32,15 +32,62 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
   const [highscore, setHighscore] = React.useState(0);
   const [optionsModalVisible, setOptionsModalVisible] = React.useState(false);
+  const [networkErrorModalVisible, setNetworkErrorModalVisible] = React.useState(false);
+  const [waitingForResponse, setWaitingForResponse] = React.useState(false);
+
+  const TypingIndicator: React.FC = () => {
+      const dot1 = useRef(new Animated.Value(0)).current;
+      const dot2 = useRef(new Animated.Value(0)).current;
+      const dot3 = useRef(new Animated.Value(0)).current;
+    
+      useEffect(() => {
+        const animateDot = (dot: Animated.Value, delay: number) => {
+          Animated.loop(
+            Animated.sequence([
+              Animated.timing(dot, {
+                toValue: -5,
+                duration: 300,
+                useNativeDriver: true,
+                delay,
+              }),
+              Animated.timing(dot, {
+                toValue: 0,
+                duration: 300,
+                useNativeDriver: true,
+              }),
+            ])
+          ).start();
+        };
+    
+        animateDot(dot1, 0);
+        animateDot(dot2, 150);
+        animateDot(dot3, 300);
+      }, [dot1, dot2, dot3]);
+    
+      return (
+        <View style={styles.typingIndicator}>
+          <Animated.View style={[styles.dot, { transform: [{ translateY: dot1 }] }]} />
+          <Animated.View style={[styles.dot, { transform: [{ translateY: dot2 }] }]} />
+          <Animated.View style={[styles.dot, { transform: [{ translateY: dot3 }] }]} />
+        </View>
+      );
+    };
 
   const handleSubmit = async () => {
-    const category = await categorizeQuestion(question);
-    if ((category == questionType) || alwaysCorrect) {
-      setIsAnswerCorrect(true);
-    } else {
-      setIsAnswerCorrect(false);
+    try {
+      setWaitingForResponse(true);
+      const category = await categorizeQuestion(question);
+      setWaitingForResponse(false);
+      if ((category == questionType) || alwaysCorrect) {
+        setIsAnswerCorrect(true);
+      } else {
+        setIsAnswerCorrect(false);
+      }
+      setModalVisible(true);
+    } catch (error) {
+      setNetworkErrorModalVisible(true);
+      setWaitingForResponse(false);
     }
-    setModalVisible(true);
   };
 
   const handleCloseModal = () => {
@@ -68,6 +115,11 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleGoBack = () => {
     navigation.goBack();
+  };
+
+  const handleHomePress = () => {
+    setNetworkErrorModalVisible(false);
+    navigation.navigate("Home");
   };
 
   const handleSettingsPress = () => {
@@ -197,6 +249,42 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </View>
       </Modal>
+                  <Modal
+                animationType="slide"
+                transparent={true}
+                visible={networkErrorModalVisible}
+                onRequestClose={() => setNetworkErrorModalVisible(false)}
+              >
+                <View style={styles.centeredView}>
+                  <View style={styles.optionsModalView}>
+                    <Text style={styles.modalText}>Network Error</Text>
+                    <Pressable
+                      style={[styles.optionsModalButton, styles.correctButton]}
+                      onPress={() => setNetworkErrorModalVisible(false)}
+                    >
+                      <Text style={styles.buttonText}>Retry</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[styles.optionsModalButton, styles.correctButton]}
+                      onPress={() => handleHomePress()}
+                    >
+                      <Text style={styles.buttonText}>Home</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </Modal>
+              <Modal
+                animationType="none"
+                transparent={true}
+                visible={waitingForResponse}
+                onRequestClose={() => setWaitingForResponse(false)}
+              >
+                <View style={styles.overlay}>
+                  <View style={styles.overlayContent}>
+                    <TypingIndicator />
+                  </View>
+                </View>
+              </Modal>
     </View>
     </TouchableWithoutFeedback>
     </KeyboardAwareScrollView>
@@ -386,6 +474,36 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 2,
     borderColor: colors.outline,
+  },
+  typingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#000',
+    marginHorizontal: 2,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  overlayContent: {
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  overlayText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'black',
   },
 });
 

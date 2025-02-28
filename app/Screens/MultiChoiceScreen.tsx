@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, Image } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, Image, Animated } from 'react-native';
 
 import colors from '../config/colors';
 import { fetchQuestion } from '../config/API requests';
@@ -18,8 +18,48 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   const [question, setQuestion] = React.useState("");
   const [category, setCategory] = React.useState("");
   const [highscore, setHighscore] = React.useState(0);
-   const [optionsModalVisible, setOptionsModalVisible] = React.useState(false);
+  const [optionsModalVisible, setOptionsModalVisible] = React.useState(false);
+  const [networkErrorModalVisible, setNetworkErrorModalVisible] = React.useState(false);
+  const [waitingForResponse, setWaitingForResponse] = React.useState(false);
 
+  const TypingIndicator: React.FC = () => {
+    const dot1 = useRef(new Animated.Value(0)).current;
+    const dot2 = useRef(new Animated.Value(0)).current;
+    const dot3 = useRef(new Animated.Value(0)).current;
+  
+    useEffect(() => {
+      const animateDot = (dot: Animated.Value, delay: number) => {
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(dot, {
+              toValue: -5,
+              duration: 300,
+              useNativeDriver: true,
+              delay,
+            }),
+            Animated.timing(dot, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+          ])
+        ).start();
+      };
+  
+      animateDot(dot1, 0);
+      animateDot(dot2, 150);
+      animateDot(dot3, 300);
+    }, [dot1, dot2, dot3]);
+  
+    return (
+      <View style={styles.typingIndicator}>
+        <Animated.View style={[styles.dot, { transform: [{ translateY: dot1 }] }]} />
+        <Animated.View style={[styles.dot, { transform: [{ translateY: dot2 }] }]} />
+        <Animated.View style={[styles.dot, { transform: [{ translateY: dot3 }] }]} />
+      </View>
+    );
+  };
+  
 
   // While the classifier is still not set up:
   const alwaysOpenEnded = true;
@@ -55,6 +95,11 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleGoBack = () => {
     navigation.goBack();
   };
+  
+  const handleHomePress = () => {
+    setNetworkErrorModalVisible(false);
+    navigation.navigate("Home");
+  };
 
   const handleSettingsPress = () => {
     setOptionsModalVisible(false);
@@ -72,11 +117,18 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   }, [highscore]);
 
   async function getQuestion() {
+    try {
+    setWaitingForResponse(true);
     const question = await fetchQuestion();
+    setWaitingForResponse(false);
     setQuestion(question.question);
     console.log("question: ", question.question);
     
     setCategory(question.category);
+    } catch (error) {
+      setNetworkErrorModalVisible(true);
+      setWaitingForResponse(false);
+    };
     
   };
 
@@ -108,6 +160,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>       
         <ScrollView style={styles.speechBubble} contentContainerStyle={{alignItems: 'center'}}>
           <Text style={styles.questionText}>{question}</Text>
+          {waitingForResponse && <TypingIndicator />}
         </ScrollView>
       <View style={styles.optionsContainer}>
         <TouchableOpacity style={styles.optionBox} onPress={() => handleOptionPress(0)}>
@@ -174,7 +227,31 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
               </View>
             </Modal>
-    </View>
+            <Modal
+          animationType="slide"
+          transparent={true}
+          visible={networkErrorModalVisible}
+          onRequestClose={() => setNetworkErrorModalVisible(false)}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.optionsModalView}>
+              <Text style={styles.modalText}>Network Error</Text>
+              <Pressable
+                style={[styles.optionsModalButton, styles.correctButton]}
+                onPress={() => setNetworkErrorModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Retry</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.optionsModalButton, styles.correctButton]}
+                onPress={() => handleHomePress()}
+              >
+                <Text style={styles.buttonText}>Home</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
+      </View>
     </GestureHandlerRootView>
   );
 };
@@ -375,6 +452,19 @@ const styles = StyleSheet.create({
     color: colors.lightText,
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  typingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#000',
+    marginHorizontal: 2,
   },
 });
 
