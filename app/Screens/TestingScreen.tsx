@@ -60,11 +60,11 @@ const TypingIndicator: React.FC = () => {
 const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const stageList = [
     "Stage 1: Introductory Phase",
-    "Stage 2: Rapport-Building Phase",
-    "Stage 3: Transitional Phase",
-    "Stage 4: Substantive Phase",
-    "Stage 5: Closure Phase"
+    "Stage 2: Information-Gathering Phase",
+    "Stage 3: Closure Phase"
   ];
+
+  const stageQuestionCount = [2, 2, 2];
   const { stage } = route.params;
   const stage_name = stageList[stage - 1];
 
@@ -81,6 +81,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [lastQuestion, setLastQuestion] = useState("");
   const [networkErrorModalVisible, setNetworkErrorModalVisible] = React.useState(false);
   const [waitingForResponse, setWaitingForResponse] = React.useState(false); 
+  const [finalModalVisible, setFinalModalVisible] = React.useState(false);
   
 
   const handleSend = () => {
@@ -98,6 +99,35 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
+  const onFinishingInterview = () => {
+    setFinalModalVisible(true);
+  };
+
+  const onFinalModalHomePress = () => {
+    setFinalModalVisible(false);
+    navigation.navigate("Home");
+  };
+
+  const handleNavigation = () => {
+    switch (stage) {
+      case 1: {
+        if (questionCount === stageQuestionCount[0] - 1){
+          
+          onMovingStage();
+        };
+      };
+      case 2: {
+        if (questionCount === stageQuestionCount[1] - 1){
+          onFinishingInterview();
+      };
+    };
+      case 3: {
+        if (questionCount === stageQuestionCount[2] - 1){
+          onFinishingInterview();
+        }
+      };
+    };
+  }; 
   const simulateBotResponse = async (userMessage: string) => {
     setBotTyping(true);
     try {
@@ -105,15 +135,14 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setWaitingForResponse(true);
       const botMessage = await fetchChatResponse(chat_prompt);
       setWaitingForResponse(false);
-      displayMessageCharacterByCharacter(botMessage, 0);
+      displayMessageCharacterByCharacter(botMessage, 0, () => onEachQuestion());
       setQAndAPairs([...qAndAPairs, { question: userMessage, response: botMessage }]);
-      if (questionCount + 1 === 5) {
-        onFifthQuestion();
-      }
+      handleNavigation();
     } catch (error) {
       console.error("Error fetching bot response:", error);
       const errorMessage = "There was an error fetching a response. Please try again later.";
       displayMessageCharacterByCharacter(errorMessage, 0);
+      setNetworkErrorModalVisible(true);
     }
   };
 
@@ -121,29 +150,32 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation.goBack();
   };
   // isUser == 0: bot, isUser == 1: user, isUser == -1: feedback
-  const displayMessageCharacterByCharacter = (message: string, isUser: number) => {
+  const displayMessageCharacterByCharacter = (message: string, isUser: number, callback?: () => void) => {
     let currentText = "";
     let index = 0;
 
     const interval = setInterval(() => {
-      if (index < message.length) {
-        currentText += message[index];
-        setMessages((prevMessages) => {
-          const newMessages = [...prevMessages];
-          if (newMessages[newMessages.length - 1]?.isUser === isUser) {
-            newMessages[newMessages.length - 1].text = currentText;
-          } else {
-            newMessages.push({ text: currentText, isUser });
-          }
-          return newMessages;
-        });
-        index++;
-      } else {
-        clearInterval(interval);
-        setBotTyping(false);
-      }
+        if (index < message.length) {
+            currentText += message[index];
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                if (newMessages[newMessages.length - 1]?.isUser === isUser) {
+                    newMessages[newMessages.length - 1].text = currentText;
+                } else {
+                    newMessages.push({ text: currentText, isUser });
+                }
+                return newMessages;
+            });
+            index++;
+        } else {
+            clearInterval(interval);
+            setBotTyping(false);
+            if (callback) {
+                callback();
+            }
+        }
     }, 10);
-  };
+};
 
   async function onEachQuestion() {
     try {
@@ -184,11 +216,16 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  async function onFifthQuestion(): Promise<undefined> {
+  async function onMovingStage(): Promise<undefined> {
     try {
       setWaitingForResponse(true);
       const feedbackJSON = await fetchFeedback(qAndAPairs);
       setWaitingForResponse(false);
+      setMessages([]);
+      setQAndAPairs([]);
+      setQuestionCount(0);
+      setIsAnswerCorrect(null);
+      setFeedback(null);
       setIsAnswerCorrect(feedbackJSON.is_correct);
       setFeedback(feedbackJSON.response);
       setModalVisible(true);
@@ -217,6 +254,10 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     } catch (error) {
       setNetworkErrorModalVisible(true);
     };
+  };
+
+  const handleCloseFinalModal = () => {
+    setFinalModalVisible(false);
   };
 
   useEffect(() => {
@@ -263,9 +304,10 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
               <Icon name="arrow-back" size={24} color="black" />
             </Pressable>
             <Text style={styles.toptext}>Testing Section</Text>
-          <Text style={styles.header}>Ask 5 questions appropriate for {stage_name}</Text>
+          <Text style={styles.header}>Ask {stageQuestionCount[stage - 1]} questions appropriate for {stage_name}</Text>
           <View style={styles.speechBubble}>
-            <Text style={styles.scenarioText}>Your scenario is: </Text>
+            <Text style={stage === 1 ? styles.scenarioTextStage1 : styles.scenarioTestNotStage1}>
+              Your scenario is: {stage != 1 ? scenario : ""}</Text>
           </View>
           <ScrollView style={styles.chatContainer}>
             {messages.map((message, index) => (
@@ -302,6 +344,26 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
                   onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
                 >
                   <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={finalModalVisible}
+            onRequestClose={handleCloseFinalModal}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modalContent, styles.correctModal ]}>
+                <Text style={styles.modalText}>
+                  Well done! You have completed the testing section.
+                </Text>
+                <Pressable
+                  style={[styles.modalButton, styles.correctButton]}
+                  onPress={() => onFinalModalHomePress()}
+                >
+                  <Text style={styles.buttonText}>Home</Text>
                 </Pressable>
               </View>
             </View>
@@ -364,19 +426,24 @@ const styles = StyleSheet.create({
     width: '80%',
     height: '10%',
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: colors.inputBackground,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'gray',
+    borderColor: colors.inputBorder,
     alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
   },
-  scenarioText: {
+  
+  scenarioTextStage1: {
     fontSize: 18,
-    color: 'black',
+    color: colors.darkText,
     
+  },
+  scenarioTestNotStage1: {
+    fontSize: 11,
+    color: colors.darkText,
   },
   sendButtonStyle: {
     borderRadius: 10,
