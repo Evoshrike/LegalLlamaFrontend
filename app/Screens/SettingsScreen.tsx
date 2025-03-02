@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { View, Text,Switch, StyleSheet, Animated, Pressable } from 'react-native';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../config/types';
@@ -6,6 +6,28 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 import { Button } from "@rneui/base";
 import colors from '../config/colors';
+const ThemeContext = createContext('themeContext');
+
+import { ReactNode } from 'react';
+import * as Linking from 'expo-linking';
+
+// TODO make this work - integrate light / dark mode and add toggle switch
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
+  return (
+    <ThemeContext.Provider value=""//{{ isDarkMode, toggleTheme }}> 
+    >
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export const useTheme = () => useContext(ThemeContext);
 
 type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
 
@@ -17,6 +39,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     const animatedValue1 = useRef(new Animated.Value(0)).current;
     const animatedValue2 = useRef(new Animated.Value(0)).current;
     const animatedValue3 = useRef(new Animated.Value(0)).current;
+
+    
 
     const handlePress = () => {
         console.log('pressed');
@@ -38,6 +62,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             duration: 300,
             useNativeDriver: false,
         }).start();
+    };
+
+    const handleDocsPress = () => {
+        Linking.openURL('https://github.com/Evoshrike/LegalLlamaFrontend');
     };
 
     useEffect(() => {
@@ -98,9 +126,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 />
             </View>
             <View style={styles.optionContainer}>
-                <Text>Option 4</Text>
+                <Text>About App</Text>
                 <View style={styles.buttonStyle}>
-                <Button title="Change" onPress={handlePress} buttonStyle={styles.buttonStyle} />
+                <Button title="Docs" onPress={handleDocsPress} buttonStyle={styles.buttonStyle} />
                 </View>
             </View>
             <View style={styles.homeButton}>

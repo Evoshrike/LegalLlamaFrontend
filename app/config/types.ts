@@ -24,7 +24,7 @@ type categorized_question = {
 }
 
 type feedback = {
-  response: string;
+  message: string;
   is_correct: boolean;
 }
 
@@ -42,10 +42,15 @@ type testing_feedback = {
 
 type item =  { key: string, label: string }
 
+type highscore = {
+  score: number,
+  date: string
+}
+
 
 
 
   export {RootStackParamList, q_and_a, feedback, item, 
-    categorized_question, chat_request, testing_feedback_input, testing_feedback};
+    categorized_question, chat_request, testing_feedback_input, testing_feedback, highscore};
 
   export default {}

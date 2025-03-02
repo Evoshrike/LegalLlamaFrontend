@@ -13,12 +13,14 @@ import EnterQuestionScreen from "./Screens/EnterQuestionScreen";
 import MultiChoiceScreen from "./Screens/MultiChoiceScreen";
 import DragSortListScreen from "./Screens/DragSortListScreen";
 import SettingsScreen from "./Screens/SettingsScreen";
+import { initHighScores } from "./config/PersistentState";
 
 console.log("app loading..");
 enableScreens();
 
 const App = () => {
   console.log("We got to APP");
+  initHighScores();
   const Stack = createNativeStackNavigator<RootStackParamList>();
 
   return (

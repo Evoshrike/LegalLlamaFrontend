@@ -33,6 +33,15 @@ def categorize_question(request: CategorizeRequest):
     else:
         return {"message": "Suggestive"}
     
+
+@app.post("/llm-categorize-question")
+def llm_categorize_question(request: CategorizeRequest):
+    time.sleep(1)
+    if "what" in request.question.lower():
+        return {"message": "Open-Ended"}
+    else:
+        return {"message": "Suggestive"}
+    
     
 @app.get("/generate-question")
 def generate_question():
@@ -53,13 +62,21 @@ def chat(request: ChatRequest):
 @app.get("/generate-scenario")
 def generate_scenario():
     time.sleep(1)
-    return {"Scenario": "You are in a room with a table and a chair."}
+    return {
+        "Scenario": (
+            "A thirteen-year-old boy named Benjamin is referred for an interview after school officials "
+            "notice repeated absences and changes in his behavior. The interviewer is given access to "
+            "Benjamin's journal, which contains disturbing entries hinting at inappropriate contact with "
+            "an adult. Additionally, there are text messages on his phone from an unknown number that are "
+            "sexually explicit."
+        )
+    }
 
 class FeedbackRequest(BaseModel):
-    conversation: list
+    questions: list
 
-@app.post("/feedback")
-def feedback(request: FeedbackRequest):
+@app.post("/give-feedback")
+def give_feedback(request: FeedbackRequest):
     
     return {"response": "You have progressed to the next stage! Well done!", "is_correct": True}
     

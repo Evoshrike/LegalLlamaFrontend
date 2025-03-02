@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView, Animated } from "react-native";
+import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView, Animated, Dimensions } from "react-native";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, fetchTestingFeedback, startSession } from "../config/API requests";
@@ -10,6 +10,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import colors from "../config/colors";
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TestingScreen'>;
+
+const {height: screenHeight} = Dimensions.get('window');
 
 const ChatMessage: React.FC<{ message: string; isUser: number }> = ({ message, isUser }) => {
   return (
@@ -82,6 +84,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [networkErrorModalVisible, setNetworkErrorModalVisible] = React.useState(false);
   const [waitingForResponse, setWaitingForResponse] = React.useState(false); 
   const [finalModalVisible, setFinalModalVisible] = React.useState(false);
+  const [funcToRetry, setFuncToRetry] = React.useState<() => void>(() => () => {});
   
 
   const handleSend = () => {
@@ -100,6 +103,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const onFinishingInterview = () => {
+  
     setFinalModalVisible(true);
   };
 
@@ -114,17 +118,22 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         if (questionCount === stageQuestionCount[0] - 1){
           
           onMovingStage();
-        };
+        }
+        break;
       };
       case 2: {
         if (questionCount === stageQuestionCount[1] - 1){
+          console.log("stage 2: ", stage);
           onFinishingInterview();
-      };
+      }
+      break;
     };
       case 3: {
         if (questionCount === stageQuestionCount[2] - 1){
+          console.log("stage 3: ", stage);
           onFinishingInterview();
         }
+        break;
       };
     };
   }; 
@@ -142,13 +151,15 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       console.error("Error fetching bot response:", error);
       const errorMessage = "There was an error fetching a response. Please try again later.";
       displayMessageCharacterByCharacter(errorMessage, 0);
-      setNetworkErrorModalVisible(true);
+      handleNetworkError(() => simulateBotResponse(userMessage));
     }
   };
 
   const handleGoBack = () => {
     navigation.goBack();
   };
+
+  
   // isUser == 0: bot, isUser == 1: user, isUser == -1: feedback
   const displayMessageCharacterByCharacter = (message: string, isUser: number, callback?: () => void) => {
     let currentText = "";
@@ -212,6 +223,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         };
       };
     } catch (error) {
+      console.log("Error fetching per-quetsion feedback:", error);  
       setNetworkErrorModalVisible(true);
     }
   };
@@ -220,16 +232,13 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       setWaitingForResponse(true);
       const feedbackJSON = await fetchFeedback(qAndAPairs);
-      setWaitingForResponse(false);
-      setMessages([]);
-      setQAndAPairs([]);
-      setQuestionCount(0);
-      setIsAnswerCorrect(null);
-      setFeedback(null);
       setIsAnswerCorrect(feedbackJSON.is_correct);
-      setFeedback(feedbackJSON.response);
+      setFeedback(feedbackJSON.message);
+      // wait 1 second before showing feedback
+      await new Promise(resolve => setTimeout(resolve, 1000));
       setModalVisible(true);
     } catch (error) {
+      console.log("Error fetching end-of-stage feedback:", error);
       setNetworkErrorModalVisible(true);
     };
    
@@ -243,7 +252,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setScenario(scenario);
       console.log(scenario);
     } catch (error) {
-      setNetworkErrorModalVisible(true);
+      console.log("Error fetching scenario:", error);
+      handleNetworkError(generateScenario);
   };
 };
 
@@ -252,13 +262,23 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       const session_id = await startSession();
       setSessionID(session_id);
     } catch (error) {
-      setNetworkErrorModalVisible(true);
+      handleNetworkError(startChatSession);
     };
   };
 
   const handleCloseFinalModal = () => {
     setFinalModalVisible(false);
   };
+
+  const handleNetworkError = (func: () => void) => {
+    setFuncToRetry(func);
+    setNetworkErrorModalVisible(true);
+  };
+
+  const handleRetry = () => {
+    setNetworkErrorModalVisible(false);
+    funcToRetry();
+  }
 
   useEffect(() => {
     generateScenario();
@@ -280,6 +300,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleAnswer = (isCorrect: boolean) => {
     setModalVisible(false);
+    setWaitingForResponse(false);
     if (isCorrect) {
       setMessages([]);
       setQAndAPairs([]);
@@ -287,7 +308,14 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setIsAnswerCorrect(null);
       setFeedback(null);
       navigation.navigate("TestingScreen", { stage: stage + 1 });
-    };
+    } else {
+      setMessages([]);
+      setQAndAPairs([]);
+      setQuestionCount(0);
+      setIsAnswerCorrect(null);
+      setFeedback(null);
+      navigation.navigate("TestingScreen", { stage: stage });
+    }
   };
 
   return (
@@ -305,7 +333,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
             </Pressable>
             <Text style={styles.toptext}>Testing Section</Text>
           <Text style={styles.header}>Ask {stageQuestionCount[stage - 1]} questions appropriate for {stage_name}</Text>
-          <View style={styles.speechBubble}>
+          <View style={[styles.speechBubble, styles.speechBubbleContent]} >
             <Text style={stage === 1 ? styles.scenarioTextStage1 : styles.scenarioTestNotStage1}>
               Your scenario is: {stage != 1 ? scenario : ""}</Text>
           </View>
@@ -343,7 +371,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
                   style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
                   onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
                 >
-                  <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
+                  <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Try Again"}</Text>
                 </Pressable>
               </View>
             </View>
@@ -379,13 +407,13 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
                         <Text style={styles.modalText}>Network Error</Text>
                         <Pressable
                           style={[styles.optionsModalButton, styles.correctButton]}
-                          onPress={() => setNetworkErrorModalVisible(false)}
+                          onPress={handleRetry}
                         >
                           <Text style={styles.buttonText}>Retry</Text>
                         </Pressable>
                         <Pressable
                           style={[styles.optionsModalButton, styles.correctButton]}
-                          onPress={() => handleHomePress()}
+                          onPress={handleHomePress}
                         >
                           <Text style={styles.buttonText}>Home</Text>
                         </Pressable>
@@ -424,16 +452,21 @@ const styles = StyleSheet.create({
   speechBubble: {
   
     width: '80%',
-    height: '10%',
-    padding: 20,
+    // height: screenHeight * 0.1,
+    padding: 5,
     backgroundColor: colors.inputBackground,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.inputBorder,
     alignSelf: 'center',
+   
+    marginBottom: 20,
+  },
+
+  speechBubbleContent: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+
   },
   
   scenarioTextStage1: {
@@ -442,7 +475,7 @@ const styles = StyleSheet.create({
     
   },
   scenarioTestNotStage1: {
-    fontSize: 11,
+    fontSize: 14,
     color: colors.darkText,
   },
   sendButtonStyle: {

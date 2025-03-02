@@ -68,9 +68,9 @@ async function fetchChatResponse(prompt: chat_request): Promise<string> {
 
 async function fetchFeedback(conversation: Array<q_and_a>): Promise<feedback> {
     console.log("fetching feedback");
-    const responseURL = url + '/feedback';
+    const responseURL = url + '/give-feedback';
     
-    const requestBody = { conversation: conversation };
+    const requestBody = { questions: conversation };
     console.log(requestBody);
 
      // Create a timeout promise, race against response promise, throw err if no response in 5s
@@ -89,6 +89,7 @@ async function fetchFeedback(conversation: Array<q_and_a>): Promise<feedback> {
     ]);
 
     if (!response.ok) {
+        
         throw new Error(`HTTP error! status: ${response.status}`);
     }
     
@@ -99,7 +100,7 @@ async function fetchFeedback(conversation: Array<q_and_a>): Promise<feedback> {
 
 async function categorizeQuestion(question: string): Promise<string> {
     console.log("categorising q")
-    const responseURL = url + '/categorize-question';
+    const responseURL = url + '/llm-categorize-question';
     const requestBody = { question: question};
     
      // Create a timeout promise, race against response promise, throw err if no response in 5s
@@ -123,6 +124,7 @@ async function categorizeQuestion(question: string): Promise<string> {
     
 
     const responseJSON = await response.json();
+    console.log("category: ", responseJSON);
     const category = responseJSON.message;
     return responseJSON;
 } 
@@ -177,6 +179,7 @@ async function fetchQuestion(): Promise<categorized_question> {
     ]);
 
     if (!response.ok) {
+        console.log("response: ", response.json());
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
