@@ -17,6 +17,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   // to test navigation. For production, set to false. 
   const alwaysCorrect = false;
   const { question_type_index, successiveQuestionCount } = route.params;
+  
 
   const questionTypes = ["Open-Ended", "Directive", "Option Posing", "Suggestive"];
   const questionTypesFromAPI = ["Open-ended", "Directive", "Option Posing", "Suggestive"];
@@ -108,9 +109,12 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     setHighscore(route.params.highscore);
+    
+    
   }, []);
 
   const handleAnswer = (isCorrect: boolean, confidentAboutAnswer: boolean) => {
+    setModalVisible(false);
     if (confidentAboutAnswer){
       if (isCorrect) {
         setHighscore(highscore + 1);
@@ -171,9 +175,9 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
       if (successiveQuestionCount < 1) {
         setQuestion("");
         setPlaceholder("Enter your question");
-        
+        console.log("question type index: ", question_type_index);
         navigation.navigate("EnterQuestionScreen",
-           { question_type_index: question_type_index + 1, 
+           { question_type_index: (question_type_index + 1) % 4, 
             highscore: highscore, 
             successiveQuestionCount: successiveQuestionCount + 1 });
       } else {
