@@ -29,9 +29,9 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
 export const useTheme = () => useContext(ThemeContext);
 
-type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
+type Props = NativeStackScreenProps<RootStackParamList, "AboutScreen">;
 
-const SettingsScreen: React.FC<Props> = ({ navigation }) => {
+const AboutScreen: React.FC<Props> = ({ navigation }) => {
     const [option1, setOption1] = React.useState(false);
     const [option2, setOption2] = React.useState(false);
     const [option3, setOption3] = React.useState(false);
@@ -42,8 +42,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
     
 
-    const handlePress = () => {
-        console.log('pressed');
+    const handleNICHDPress = () => {
+        Linking.openURL('https://nichdprotocol.com/the-nichd-protocol/_obj/pdf/28/REVISED_VERSION_2021.pdf');
     };
 
     const handleHomePress = () => {
@@ -64,8 +64,12 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         }).start();
     };
 
-    const handleDocsPress = () => {
+    const handleFrontendPress = () => {
         Linking.openURL('https://github.com/Evoshrike/LegalLlamaFrontend');
+    };
+
+    const handleBackendPress = () => {
+        Linking.openURL('https://github.com/HFZR2005/SierraServer');
     };
 
     useEffect(() => {
@@ -97,38 +101,33 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               <Pressable onPress={handleGoBack} style={styles.backButton}>
                                 <Icon name="arrow-back" size={30} color="black" />
                               </Pressable>
-            <Text style={styles.header}>Settings Screen</Text>
+            <Text style={styles.header}>About Legal Llama</Text>
             <View style={styles.optionContainer}>
-                <Text>Option 1</Text>
-                <Switch
-                    value={option1}
-                    onValueChange={() => toggleSwitch(option1, setOption1, animatedValue1)}
-                    thumbColor='#f4f3f4'
-                    trackColor={{ false: '#767577', true: '#81b0ff' }}
-                />
+                <Text style={styles.aboutText}>This app was developed in 2025 as a group project by Cambridge University students Radhika Aggarwal,
+                     Nastasya Anos, Shrey Patel, Harry West, and Jude Hill (collectively known as Team Sierra), in
+                      collaboration with Dr. Ching-Yu (Soar) Huang from the National University of Taiwan. Created as part of 
+                      the Part IB Computer Science Tripos, the app is designed to assist users in learning proper techniques 
+                      for conducting interviews with children in sensitive situations, following the NICHD protocol. 
+                      Below, you can find links to the protocol and the project's GitHub repository.
+                </Text>
+                
             </View>
             <View style={styles.optionContainer}>
-                <Text>Option 2</Text>
-                <Switch
-                    value={option2}
-                    onValueChange={() => toggleSwitch(option2, setOption2, animatedValue2)}
-                    thumbColor='#f4f3f4'
-                    trackColor={{ false: '#767577', true: '#81b0ff' }}
-                />
-            </View>
-            <View style={styles.optionContainer}>
-                <Text>Option 3</Text>
-                <Switch
-                    value={option3}
-                    onValueChange={() => toggleSwitch(option3, setOption3, animatedValue3)}
-                    thumbColor='#f4f3f4'
-                    trackColor={{ false: '#767577', true: '#81b0ff' }}
-                />
-            </View>
-            <View style={styles.optionContainer}>
-                <Text>About App</Text>
+                <Text style={styles.optionTextStyle}>View the NICHD protocol</Text>
                 <View style={styles.buttonStyle}>
-                <Button title="Docs" onPress={handleDocsPress} buttonStyle={styles.buttonStyle} />
+                <Button title="Open" onPress={handleNICHDPress} buttonStyle={styles.buttonStyle} />
+                </View>
+            </View>
+            <View style={styles.optionContainer}>
+                <Text style={styles.optionTextStyle} >Frontend repository</Text>
+                <View style={styles.buttonStyle}>
+                <Button title="Open" onPress={handleFrontendPress} buttonStyle={styles.buttonStyle} />
+                </View>
+            </View>
+            <View style={styles.optionContainer}>
+                <Text style={styles.optionTextStyle}>Backend repository</Text>
+                <View style={styles.buttonStyle}>
+                <Button title="Open" onPress={handleBackendPress} buttonStyle={styles.buttonStyle} />
                 </View>
             </View>
             <View style={styles.homeButton}>
@@ -188,6 +187,15 @@ const styles = StyleSheet.create({
         backgroundColor: colors.transparent,
       
       },
+      optionTextStyle: {
+        fontWeight: 'bold',
+        fontSize: 18,
+        color: colors.darkText,
+    },
+    aboutText: {
+        fontSize: 16,
+        color: colors.darkText,
+    },
 });
 
-export default SettingsScreen;
+export default AboutScreen;

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Text, TextInput, Modal, TouchableOpacity, Pressable, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Keyboard, Animated } from "react-native";
+import { Text, BackHandler, TextInput, Modal, TouchableOpacity, Pressable, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Keyboard, Animated } from "react-native";
 import { View, Image, StyleSheet } from "react-native";
 import colors from "../config/colors";
 import { Button } from "@rneui/base";
@@ -105,6 +105,19 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
     setModalVisible(false);
   };
 
+  useEffect(() => {
+    const backAction = () => {
+      setOptionsModalVisible(true);
+    return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+    return () => backHandler.remove();
+  }, []);
+  
+
   
 
   useEffect(() => {
@@ -162,11 +175,11 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleSettingsPress = () => {
     setOptionsModalVisible(false);
-    navigation.navigate("Settings");
+    navigation.navigate("AboutScreen");
   };
 
   useEffect(() => {
-    console.log("passing highscore: ", highscore);
+    // console.log("passing highscore: ", highscore);
     if (!(isAnswerCorrect)) {
       handleCloseModal();
       setQuestion("");
@@ -176,15 +189,16 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
       if (successiveQuestionCount < 1) {
         setQuestion("");
         setPlaceholder("Enter your question");
-        console.log("question type index: ", question_type_index);
+        console.log("question type index: ", (question_type_index + 1) % 4);
+
         navigation.navigate("EnterQuestionScreen",
-           { question_type_index: (question_type_index + 1) % 4, 
+           { question_type_index: (question_type_index % 4) + 1, 
             highscore: highscore, 
             successiveQuestionCount: successiveQuestionCount + 1 });
       } else {
         setQuestion("");
         setPlaceholder("Enter your question");
-        navigation.navigate("MultiChoiceScreen", { highscore: highscore, question_type_index: question_type_index + 1});
+        navigation.navigate("MultiChoiceScreen", { highscore: highscore, question_type_index: (question_type_index % 4) + 1 });
       }
     }
   }, [highscore]);
@@ -286,7 +300,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
               style={[styles.optionsModalButton, styles.correctButton]}
               onPress={() => handleSettingsPress()}
             >
-              <Text style={styles.buttonText}>Settings</Text>
+              <Text style={styles.buttonText}>About</Text>
             </Pressable>
           </View>
         </View>
