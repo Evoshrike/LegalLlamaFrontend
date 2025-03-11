@@ -124,7 +124,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleSettingsPress = () => {
     setOptionsModalVisible(false);
-    navigation.navigate("Settings");
+    navigation.navigate("AboutScreen");
   };
 
   useEffect(() => {
@@ -244,7 +244,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
                     style={[styles.optionsModalButton, styles.correctButton]}
                     onPress={() => handleSettingsPress()}
                   >
-                    <Text style={styles.buttonText}>Settings</Text>
+                    <Text style={styles.buttonText}>About</Text>
                   </Pressable>
                 </View>
               </View>

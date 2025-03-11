@@ -403,13 +403,13 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
                   style={[styles.optionsModalButton, styles.correctButton]}
                   onPress={handleGoBack}
                 >
-                  <Text style={styles.buttonText}>Quit Practice</Text>
+                  <Text style={styles.buttonText}>Quit Testing</Text>
                 </Pressable>
                 <Pressable
                   style={[styles.optionsModalButton, styles.correctButton]}
                   onPress={() => setOptionsModalVisible(false)}
                 >
-                  <Text style={styles.buttonText}>Resume Practice</Text>
+                  <Text style={styles.buttonText}>Resume Testing</Text>
                 </Pressable>
               </View>
             </View>

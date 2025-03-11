@@ -1,6 +1,6 @@
 type RootStackParamList = {
     Home: undefined;
-    Settings: undefined;
+    AboutScreen: undefined;
     EnterQuestionScreen: {question_type_index: number, highscore: number, successiveQuestionCount: number};
     TestingScreen: { stage: number, };
     DragSortListScreen: undefined;
