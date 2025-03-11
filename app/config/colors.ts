@@ -25,6 +25,7 @@ export default {
     whiteSmoke: "#f5f5f5",
     optionBoxBackground: '#006400',
     highScoresSecondary: '#004D40',
+    highScoresTertiary: 'green',
     unsure: 'orange',
     unsureButton: '#cc8400',
     
