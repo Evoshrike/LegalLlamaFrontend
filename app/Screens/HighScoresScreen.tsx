@@ -26,14 +26,15 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
     useEffect(() => {
         const getTop5Scores = async () => {
             const highScores = await getHighScores();
+            console.log(highScores);
             let len = highScores.length;
             if (len > 0) {
                 const score = highScores[len - 1];
+                let otherScoresList = highScores.slice(0, len - 1);
+                otherScoresList = otherScoresList.reverse();
+                otherScoresList = otherScoresList.slice(0, 4);
                 setTopScore(score);
-                setOtherScores(highScores.slice(0, len - 1));
-                setOtherScores(otherScores.reverse());
-                setOtherScores(otherScores.slice(0, 4));
-                console.log(otherScores)
+                setOtherScores(otherScoresList);
             }
         };
 
