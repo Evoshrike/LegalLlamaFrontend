@@ -146,6 +146,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation.navigate("Home");
   };
 
+  // Not using this anymore - pressing back arrow will also trigger options modal
   const handleGoBack = () => {
     navigation.goBack();
   };
@@ -194,7 +195,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={styles.background}>
-       <Pressable onPress={handleGoBack} style={styles.backButton}>
+       <Pressable onPress={() => setOptionsModalVisible(true)} style={styles.backButton}>
                     <Icon name="arrow-back" size={30} color={colors.darkText} />
                   </Pressable>
                   <Text style={styles.toptext}>Practice Section</Text>

@@ -69,6 +69,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const stageQuestionCount = [2, 2, 2];
   const { stage } = route.params;
   const stage_name = stageList[stage - 1];
+  const [optionsModalVisible, setOptionsModalVisible] = useState(false);
 
   const [messages, setMessages] = useState<{ text: string; isUser: number }[]>([]);
   const [input, setInput] = useState("");
@@ -334,7 +335,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
-        <Pressable onPress={handleGoBack} style={styles.backButton}>
+        <Pressable onPress={() => setOptionsModalVisible(true)} style={styles.backButton}>
               <Icon name="arrow-back" size={24} color="black" />
             </Pressable>
             <Text style={styles.toptext}>Testing Section</Text>
@@ -388,6 +389,32 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </View>
           </Modal>
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={optionsModalVisible}
+            onRequestClose={() => setOptionsModalVisible(false)}
+          >
+            <View style={styles.centeredView}>
+              <View style={styles.optionsModalView}>
+                <Text style={styles.modalText}>Options</Text>
+                <Pressable
+                  style={[styles.optionsModalButton, styles.correctButton]}
+                  onPress={handleGoBack}
+                >
+                  <Text style={styles.buttonText}>Quit Practice</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.optionsModalButton, styles.correctButton]}
+                  onPress={() => setOptionsModalVisible(false)}
+                >
+                  <Text style={styles.buttonText}>Resume Practice</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Modal>
+
           <Modal
             animationType="slide"
             transparent={true}
