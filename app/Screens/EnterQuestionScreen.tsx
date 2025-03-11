@@ -144,16 +144,16 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const updateHighScoresList = async () => {
     const pastScores = await getHighScores();
-    let pastTopScore = {score:0, date:""}
+    const pastScoresLen = pastScores.length;
+    let insertIndex = null;
 
-    if (pastScores.length > 0) {
-      pastTopScore = pastScores[pastScores.length - 1];
-    }
-
-    if (highscore > pastTopScore.score) {
-      const newTopScore = {score: highscore, date: new Date().toDateString()};
-      pastScores.push(newTopScore);
-      await saveHighScores(pastScores);
+    for (let i = 1; i <= 5 && i <= pastScoresLen; i++) {
+      if (pastScores[pastScoresLen - i].score < highscore) {
+        insertIndex = pastScoresLen - i + 1;
+        pastScores.splice(insertIndex, 0, {score: highscore, date: new Date().toDateString()});
+        await saveHighScores(pastScores);
+        break;
+      }
     }
   };
 

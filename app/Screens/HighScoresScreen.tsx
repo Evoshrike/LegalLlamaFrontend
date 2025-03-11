@@ -26,7 +26,6 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
     useEffect(() => {
         const getTop5Scores = async () => {
             const highScores = await getHighScores();
-            console.log(highScores);
             let len = highScores.length;
             if (len > 0) {
                 const score = highScores[len - 1];
