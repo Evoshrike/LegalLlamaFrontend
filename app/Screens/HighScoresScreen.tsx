@@ -12,7 +12,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
 const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
-    const [topScore, setTopScore] = useState<highscore>({score: 0, date: ""});
+    const [topScore, setTopScore] = useState<highscore | null>(null);
 
     const handleGoBack = () => {
         navigation.goBack();
@@ -54,8 +54,16 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
 
             <View style={styles.scoresContainer}>
                 <Text style={styles.scoreTypeText}>PRACTICE STAGE: Max # of correct answers in a row</Text>
-                <Text style={styles.scoreNumText}>🔥{topScore.score}</Text>
-                <Text style={styles.scoreDateText}>{topScore.date}</Text>
+
+                { topScore !== null ? 
+                    <>
+                        <Text style={styles.scoreNumText}>🔥{topScore.score}</Text>
+                        <Text style={styles.scoreDateText}>{topScore.date}</Text>
+                    </>  :
+                    <Text style={styles.noScoresText}>... </Text>
+
+                }
+                
             </View>
 
             <ConfettiCanon ref={confettiRef} count={50} origin={{x: 0, y: 0}} fadeOut />
@@ -75,14 +83,14 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
-        paddingTop: 40,
+        paddingTop: 20,
         paddingBottom: 30,
         backgroundColor: colors.highScoresSecondary,
     },
     imageContainer: {
         justifyContent: "center",
         alignItems: "center",
-        marginVertical: 20,
+        marginVertical: 10,
     },
     image: {
         width: 150,
@@ -92,6 +100,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 40,
         fontWeight: 'bold',
+        fontStyle: 'italic',
         marginTop: 20,
         marginBottom: 0,
         textAlign: "center",
@@ -133,6 +142,14 @@ const styles = StyleSheet.create({
     scoreDateText:{
         fontSize: 25,
         fontWeight: 'bold',
+        color: colors.highScoresSecondary,
+        textAlign: "center",
+        alignSelf: "center",
+        marginVertical: 10
+    },
+    noScoresText:{
+        fontSize: 25,
+        fontStyle: 'italic',
         color: colors.highScoresSecondary,
         textAlign: "center",
         alignSelf: "center",

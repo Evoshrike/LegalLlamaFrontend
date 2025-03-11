@@ -112,6 +112,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation.navigate("Home");
   };
 
+  // Not using this anymore - pressing back arrow will also trigger options modal
   const handleGoBack = () => {
     navigation.goBack();
   };
@@ -161,7 +162,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
     <View style={styles.container}>
-             <Pressable onPress={handleGoBack} style={styles.backButton}>
+             <Pressable onPress={() => setOptionsModalVisible(true)} style={styles.backButton}>
                           <Icon name="arrow-back" size={30} color={colors.darkText} />
                         </Pressable>
                         <Text style={styles.toptext}>Practice Section</Text>
