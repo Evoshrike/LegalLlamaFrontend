@@ -29,7 +29,7 @@ import {
                 onPress={() => navigation.navigate("MultiChoiceScreen", { highscore: 0, question_type_index: 1 })}
               />
         </View>
-        <View style={styles.registerButton} >
+        <View style={styles.loginButton} >
         <Button
                 title="TESTING"
                 buttonStyle={styles.buttonStyle}
@@ -38,6 +38,15 @@ import {
                 onPress={() => navigation.navigate("TestingScreen", { stage: 1 })}
               />
         </View>
+        <View style={styles.registerButton} >
+        <Button
+                title="HIGH SCORES"
+                buttonStyle={styles.buttonStyle}
+                containerStyle={styles.buttonContainer}
+                titleStyle={{ fontWeight: 'bold' }}
+                onPress={() => navigation.navigate("HighScoresScreen")}
+              />
+          </View>
       </View>
     );
   }

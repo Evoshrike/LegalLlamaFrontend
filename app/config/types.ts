@@ -7,7 +7,7 @@ type RootStackParamList = {
     // MultiChoiceScreen does not need question_type_index, it just carries it to pass to 
     // EnterQuestionScreen.
     MultiChoiceScreen: {question_type_index: number, highscore: number};
-    
+    HighScoresScreen: undefined;
   };
 
 type q_and_a = {

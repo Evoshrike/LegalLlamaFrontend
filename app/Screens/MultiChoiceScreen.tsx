@@ -7,6 +7,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../config/types';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { GestureHandlerRootView, NativeViewGestureHandler, ScrollView } from 'react-native-gesture-handler';
+import { getHighScores, saveHighScores } from '../config/PersistentState';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MultiChoiceScreen'>;
 
@@ -89,7 +90,24 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   handleCloseModal();
 };
 
-  const handleQuitGame = () => {
+  const updateHighScoresList = async () => {
+    const pastScores = await getHighScores();
+    let pastTopScore = {score:0, date:""}
+
+    if (pastScores.length > 0) {
+      pastTopScore = pastScores[pastScores.length - 1];
+    }
+
+    if (highscore > pastTopScore.score) {
+      const newTopScore = {score: highscore, date: new Date().toDateString()};
+      pastScores.push(newTopScore);
+      await saveHighScores(pastScores);
+    }
+  };
+
+
+  const handleQuitGame = async () => {
+    await updateHighScoresList();
     setOptionsModalVisible(false);
     navigation.navigate("Home");
   };
@@ -211,7 +229,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={styles.modalText}>Options</Text>
                   <Pressable
                     style={[styles.optionsModalButton, styles.correctButton]}
-                    onPress={() => handleQuitGame()}
+                    onPress={handleQuitGame}
                   >
                     <Text style={styles.buttonText}>Quit Practice</Text>
                   </Pressable>

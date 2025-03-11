@@ -7,6 +7,7 @@ import { RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { categorizeQuestion } from "../config/API requests";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { getHighScores, saveHighScores } from '../config/PersistentState';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 type Props = NativeStackScreenProps<RootStackParamList, "EnterQuestionScreen">;
@@ -124,7 +125,23 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const handleQuitGame = () => {
+  const updateHighScoresList = async () => {
+    const pastScores = await getHighScores();
+    let pastTopScore = {score:0, date:""}
+
+    if (pastScores.length > 0) {
+      pastTopScore = pastScores[pastScores.length - 1];
+    }
+
+    if (highscore > pastTopScore.score) {
+      const newTopScore = {score: highscore, date: new Date().toDateString()};
+      pastScores.push(newTopScore);
+      await saveHighScores(pastScores);
+    }
+  };
+
+  const handleQuitGame = async () => {
+    await updateHighScoresList();
     setOptionsModalVisible(false);
     navigation.navigate("Home");
   };
@@ -250,7 +267,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.modalText}>Options</Text>
             <Pressable
               style={[styles.optionsModalButton, styles.correctButton]}
-              onPress={() => handleQuitGame()}
+              onPress={handleQuitGame}
             >
               <Text style={styles.buttonText}>Quit Practice</Text>
             </Pressable>

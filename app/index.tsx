@@ -13,6 +13,7 @@ import EnterQuestionScreen from "./Screens/EnterQuestionScreen";
 import MultiChoiceScreen from "./Screens/MultiChoiceScreen";
 import DragSortListScreen from "./Screens/DragSortListScreen";
 import SettingsScreen from "./Screens/SettingsScreen";
+import HighScoresScreen from "./Screens/HighScoresScreen";
 import { initHighScores } from "./config/PersistentState";
 
 console.log("app loading..");
@@ -48,6 +49,7 @@ const App = () => {
       <Stack.Screen name="MultiChoiceScreen" component={MultiChoiceScreen} />
       <Stack.Screen name="DragSortListScreen" component={DragSortListScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="HighScoresScreen" component={HighScoresScreen} />
     </Stack.Navigator>
 
   );
