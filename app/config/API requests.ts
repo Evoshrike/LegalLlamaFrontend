@@ -1,10 +1,10 @@
 
 const onAndroid = false; // Variable for accessing localhost on emulator vs local device
-const remote = true; // Variable for accessing remote server vs local server
-const timeout = 5000; // Timeout for API requests
+const remote = false; // Variable for accessing remote server vs local server
+const timeout = 10000; // Timeout for API requests
 
 const url = remote ? 'http://18.175.217.103:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
-import { categorized_question, chat_request, feedback, q_and_a, testing_feedback, testing_feedback_input } from './types';
+import { categorize_response, categorized_question, chat_request, feedback, q_and_a, testing_feedback, testing_feedback_input } from './types';
 
 async function fetchResponse(prompt: string): Promise<string> {
     console.log("fetching response");
@@ -68,9 +68,9 @@ async function fetchChatResponse(prompt: chat_request): Promise<string> {
 
 async function fetchFeedback(conversation: Array<q_and_a>): Promise<feedback> {
     console.log("fetching feedback");
-    const responseURL = url + '/give-feedback';
+    const responseURL = url + '/end-stage-feedback';
     
-    const requestBody = { questions: conversation };
+    const requestBody = { responses: conversation };
     console.log(requestBody);
 
      // Create a timeout promise, race against response promise, throw err if no response in 5s
@@ -95,12 +95,25 @@ async function fetchFeedback(conversation: Array<q_and_a>): Promise<feedback> {
     
 
     const responseJSON = await response.json();
-    return responseJSON;
+    const score = responseJSON.score;
+    let feedback = { is_correct: false, is_half_correct: false, message: "Incorrect! Try again.", score: score };
+    
+        if (score > 7)
+            { feedback = { is_correct: true, is_half_correct: false, message: "Good job!", score: score }; 
+             
+            }
+        else if (score > 4 && score < 8)
+            { feedback = { is_correct: false, is_half_correct: true, message: "Almost there!", score: score };
+            
+            }
+    
+    console.log(feedback);
+    return feedback;
 } 
 
-async function categorizeQuestion(question: string): Promise<string> {
+async function categorizeQuestion(question: string): Promise<categorize_response> {
     console.log("categorising q")
-    const responseURL = url + '/llm-categorize-question';
+    const responseURL = url + '/categorize-question';
     const requestBody = { question: question};
     
      // Create a timeout promise, race against response promise, throw err if no response in 5s
@@ -125,13 +138,12 @@ async function categorizeQuestion(question: string): Promise<string> {
 
     const responseJSON = await response.json();
     console.log("category: ", responseJSON);
-    const category = responseJSON.message;
     return responseJSON;
 } 
 
 async function fetchTestingFeedback(conversation: testing_feedback_input): Promise<testing_feedback> {
-    console.log("fetching Testing feedback");
-    const responseURL = url + '/testing-feedback';
+    console.log("fetching live feedback");
+    const responseURL = url + '/live-feedback';
     
     const requestBody = conversation;
     console.log(requestBody);

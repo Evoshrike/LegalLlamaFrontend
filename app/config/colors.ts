@@ -24,6 +24,8 @@ export default {
     optionsModal: "green",
     whiteSmoke: "#f5f5f5",
     optionBoxBackground: '#006400',
-    highScoresSecondary: '#004D40'
+    highScoresSecondary: '#004D40',
+    unsure: 'orange',
+    unsureButton: '#cc8400',
     
 }

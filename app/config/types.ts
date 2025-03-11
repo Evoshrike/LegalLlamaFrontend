@@ -26,6 +26,8 @@ type categorized_question = {
 type feedback = {
   message: string;
   is_correct: boolean;
+  is_half_correct: boolean;
+  score: number; 
 }
 
 type testing_feedback_input = {
@@ -47,10 +49,15 @@ type highscore = {
   date: string
 }
 
+type categorize_response = {
+  question_type: string;
+  confidence: number;
+}
+
 
 
 
   export {RootStackParamList, q_and_a, feedback, item, 
-    categorized_question, chat_request, testing_feedback_input, testing_feedback, highscore};
+    categorized_question, chat_request, testing_feedback_input, testing_feedback, highscore, categorize_response};
 
   export default {}
