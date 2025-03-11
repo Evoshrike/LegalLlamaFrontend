@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
 const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
+    const [topScore, setTopScore] = useState<highscore>({score: 0, date: ""});
 
     const handleGoBack = () => {
         navigation.goBack();
@@ -20,6 +21,15 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
     const confettiRef = useRef<ConfettiCanon>(null);
 
     useEffect(() => {
+        const getTopScore = async () => {
+            const highScores = await getHighScores();
+            if (highScores.length > 0) {
+                const score = highScores[highScores.length - 1];
+                setTopScore(score);
+            }
+        };
+
+        getTopScore();
         confettiRef.current?.start();
     }, []);
     
@@ -43,12 +53,12 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
 
 
             <View style={styles.scoresContainer}>
-                <Text style={styles.scoreTypeText}>Max # correct answers in a row</Text>
-                <Text style={styles.scoreNumText}>🔥5</Text>
-                <Text style={styles.scoreDateText}>01/01/2000</Text>
+                <Text style={styles.scoreTypeText}>PRACTICE STAGE: Max # of correct answers in a row</Text>
+                <Text style={styles.scoreNumText}>🔥{topScore.score}</Text>
+                <Text style={styles.scoreDateText}>{topScore.date}</Text>
             </View>
 
-            <ConfettiCanon ref={confettiRef} count={100} origin={{x: 0, y: 0}} fadeOut />
+            <ConfettiCanon ref={confettiRef} count={50} origin={{x: 0, y: 0}} fadeOut />
 
         </View>
 
