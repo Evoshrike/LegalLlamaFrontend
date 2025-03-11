@@ -14,11 +14,13 @@ type Props = NativeStackScreenProps<RootStackParamList, "EnterQuestionScreen">;
 const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   // For testing purposes, marks all questions as correct (still performs API call)
   // to test navigation. For production, set to false. 
-  const alwaysCorrect = true;
+  const alwaysCorrect = false;
   const { question_type_index, successiveQuestionCount } = route.params;
 
   const questionTypes = ["Open-Ended", "Directive", "Option Posing", "Suggestive"];
+  const questionTypesFromAPI = ["Open-ended", "Directive", "Option Posing", "Suggestive"];
   const questionType = questionTypes[question_type_index - 1];
+  const questionTypeForAPI = questionTypesFromAPI[question_type_index - 1];
   var questionPronoun = "";
   if (question_type_index == 2) {
     questionPronoun = "a";
@@ -30,6 +32,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   const [placeholder, setPlaceholder] = React.useState("Enter your question");
   const [modalVisible, setModalVisible] = React.useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
+  const [confidentAboutAnswer, setConfidentAboutAnswer] = React.useState(false);
   const [highscore, setHighscore] = React.useState(0);
   const [optionsModalVisible, setOptionsModalVisible] = React.useState(false);
   const [networkErrorModalVisible, setNetworkErrorModalVisible] = React.useState(false);
@@ -76,12 +79,18 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleSubmit = async () => {
     try {
       setWaitingForResponse(true);
-      const category = await categorizeQuestion(question);
+      const response = await categorizeQuestion(question);
+      const category = response.question_type;
       setWaitingForResponse(false);
-      if ((category == questionType) || alwaysCorrect) {
+      if ((category == questionTypeForAPI) || alwaysCorrect) {
         setIsAnswerCorrect(true);
       } else {
         setIsAnswerCorrect(false);
+      }
+      if (response.confidence < 0.7) {
+        setConfidentAboutAnswer(false);
+      } else {
+        setConfidentAboutAnswer(true);
       }
       setModalVisible(true);
     } catch (error) {
@@ -100,11 +109,18 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
     setHighscore(route.params.highscore);
   }, []);
 
-  const handleAnswer = (isCorrect: boolean) => {
-    if (isCorrect) {
-      setHighscore(highscore + 1);
+  const handleAnswer = (isCorrect: boolean, confidentAboutAnswer: boolean) => {
+    if (confidentAboutAnswer){
+      if (isCorrect) {
+        setHighscore(highscore + 1);
+      } else {
+        setHighscore(0);
+      }
     } else {
-      setHighscore(0);
+      setHighscore(highscore);
+      setQuestion("");
+      setPlaceholder("Enter your question");
+      setModalVisible(false);
     }
   };
 
@@ -206,15 +222,19 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
         onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal]}>
+          <View style={[styles.modalContent, confidentAboutAnswer ? 
+          (isAnswerCorrect ? styles.correctModal : styles.incorrectModal)
+        : styles.unsureModal]}>
             <Text style={styles.modalText}>
-              {isAnswerCorrect ? "Well Done!" : "Wrong Answer"}
+              {confidentAboutAnswer ? (isAnswerCorrect ? "Well Done!" : "Wrong Answer") : "We aren't sure about this one. Try to make your question a closer fit to the category"}
             </Text>
             <Pressable
-              style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
-              onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
+              style={[styles.modalButton, confidentAboutAnswer ? 
+                (isAnswerCorrect ? styles.correctButton : styles.incorrectButton)
+              : styles.unsureButton]}
+              onPress={() => handleAnswer(isAnswerCorrect ? true : false, confidentAboutAnswer ? true : false)}
             >
-              <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
+              <Text style={styles.buttonText}>{confidentAboutAnswer ? (isAnswerCorrect ? "Continue" : "Got It") : "Try Again"}</Text>
             </Pressable>
           </View>
         </View>
@@ -362,6 +382,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.transparent,
   },
   modalContent: {
+    textAlign: 'center',
     padding: 20,
     alignItems: 'center',
     borderTopLeftRadius: 20,
@@ -370,10 +391,14 @@ const styles = StyleSheet.create({
   correctModal: {
     backgroundColor: colors.correct,
   },
+  unsureModal: {
+    backgroundColor: colors.unsure,
+  },
   incorrectModal: {
     backgroundColor: colors.incorrect,
   },
   modalText: {
+    textAlign: 'center',
     fontSize: 20,
     fontWeight: 'bold',
     color: colors.lightText,
@@ -389,6 +414,9 @@ const styles = StyleSheet.create({
   },
   incorrectButton: {
     backgroundColor: colors.incorrectButton,
+  },
+  unsureButton: {
+    backgroundColor: colors.unsureButton,
   },
   buttonText: {
     color: colors.lightText,

@@ -84,7 +84,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [networkErrorModalVisible, setNetworkErrorModalVisible] = React.useState(false);
   const [waitingForResponse, setWaitingForResponse] = React.useState(false); 
   const [finalModalVisible, setFinalModalVisible] = React.useState(false);
-  const [funcToRetry, setFuncToRetry] = React.useState<() => void>(() => () => {});
+  const [isAnswerHalfCorrect, setIsAnswerHalfCorrect] = React.useState(false);
+  // const [funcToRetry, setFuncToRetry] = React.useState<() => void>(() => () => {});
   
 
   const handleSend = () => {
@@ -233,6 +234,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setWaitingForResponse(true);
       const feedbackJSON = await fetchFeedback(qAndAPairs);
       setIsAnswerCorrect(feedbackJSON.is_correct);
+      setIsAnswerHalfCorrect(feedbackJSON.is_half_correct);
+      console.log("half correct: ", feedbackJSON.is_half_correct);
       setFeedback(feedbackJSON.message);
       // wait 1 second before showing feedback
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -271,14 +274,14 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const handleNetworkError = (func: () => void) => {
-    setFuncToRetry(func);
+    // setFuncToRetry(func);
     setNetworkErrorModalVisible(true);
   };
-
-  const handleRetry = () => {
-    setNetworkErrorModalVisible(false);
-    funcToRetry();
-  }
+// - this seems to cause lots of bugs by passing network functions around as state. Depreciated for now. 
+//  const handleRetry = () => {
+//    setNetworkErrorModalVisible(false);
+//    funcToRetry();
+//  }
 
   useEffect(() => {
     generateScenario();
@@ -314,7 +317,10 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setQuestionCount(0);
       setIsAnswerCorrect(null);
       setFeedback(null);
-      navigation.navigate("TestingScreen", { stage: stage });
+      if (stage === 1){
+        displayMessageCharacterByCharacter(scenario, 0);
+      }
+      // navigation.navigate("TestingScreen", { stage: stage });
     }
   };
 
@@ -363,16 +369,22 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
             onRequestClose={handleCloseModal}
           >
             <View style={styles.modalOverlay}>
-              <View style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal]}>
+              <View style={[styles.modalContent, isAnswerHalfCorrect ? styles.halfCorrectModal : (isAnswerCorrect ? styles.correctModal : styles.incorrectModal)]}>
                 <Text style={styles.modalText}>
                   {feedback}
                 </Text>
                 <Pressable
-                  style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
-                  onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
+                  style={[styles.modalButton, isAnswerHalfCorrect ? styles.halfCorrectButton : (isAnswerCorrect ? styles.correctButton : styles.incorrectButton)]}
+                  onPress={() => handleAnswer(isAnswerCorrect || isAnswerHalfCorrect ? true : false)}
                 >
-                  <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Try Again"}</Text>
+                  <Text style={styles.buttonText}>{isAnswerCorrect || isAnswerHalfCorrect ? "Continue" : "Try Again"}</Text>
                 </Pressable>
+                {isAnswerHalfCorrect && <Pressable
+                  style={[styles.modalButton, isAnswerHalfCorrect ? styles.halfCorrectButton : (isAnswerCorrect ? styles.correctButton : styles.incorrectButton)]}
+                  onPress={() => handleAnswer(false)}
+                >
+                  <Text style={styles.buttonText}>{"Try Again"}</Text>
+                </Pressable>}
               </View>
             </View>
           </Modal>
@@ -405,12 +417,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
                     <View style={styles.centeredView}>
                       <View style={styles.optionsModalView}>
                         <Text style={styles.modalText}>Network Error</Text>
-                        <Pressable
-                          style={[styles.optionsModalButton, styles.correctButton]}
-                          onPress={handleRetry}
-                        >
-                          <Text style={styles.buttonText}>Retry</Text>
-                        </Pressable>
+              
                         <Pressable
                           style={[styles.optionsModalButton, styles.correctButton]}
                           onPress={handleHomePress}
@@ -579,6 +586,9 @@ const styles = StyleSheet.create({
   incorrectModal: {
     backgroundColor: '#f44336', 
   },
+   halfCorrectModal: {
+      backgroundColor: colors.unsure,
+    },
   modalText: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -595,6 +605,10 @@ const styles = StyleSheet.create({
   },
   incorrectButton: {
     backgroundColor: '#D32F2F', 
+  },
+  halfCorrectButton: {
+    marginTop: 10,
+    backgroundColor: colors.unsureButton,
   },
   buttonText: {
     color: '#ffffff',

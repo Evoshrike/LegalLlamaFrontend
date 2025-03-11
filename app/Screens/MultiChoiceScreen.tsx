@@ -13,7 +13,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'MultiChoiceScreen'>;
 const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   const {question_type_index} = route.params;
   const options = ["Open-Ended", "Directive", "Option Posing", "Suggestive"];
-  const optionsFromLLM = ["Open-Ended", "Directive", "Option-Posing", "Suggestive"];
+  const optionsFromLLM = ["Open-ended", "Directive", "Option-Posing", "Suggestive"];
   const [modalVisible, setModalVisible] = React.useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = React.useState<boolean | null>(null);
   const [question, setQuestion] = React.useState("");
@@ -73,6 +73,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
     if (optionString == category || (alwaysOpenEnded && option == 0)) {
       setIsAnswerCorrect(true);
     } else {
+      console.log("correct answer: ", category);
       setIsAnswerCorrect(false);
     }
     setModalVisible(true);
