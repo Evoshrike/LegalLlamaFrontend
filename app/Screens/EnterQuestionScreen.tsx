@@ -255,7 +255,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
        <Pressable onPress={() => setOptionsModalVisible(true)} style={styles.backButton}>
                     <Icon name="arrow-back" size={30} color={colors.darkText} />
                   </Pressable>
-                  <Text style={styles.toptext}>Practice Section</Text>
+                  <Text style={styles.toptext}>Practice Mode</Text>
       <View style={styles.orangeBox}>
         <Text style={styles.orangeBoxText}>🔥 {highscore}</Text>
       </View>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView, Animated, Dimensions, BackHandler } from "react-native";
+import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView, Animated, Dimensions, BackHandler, PanResponder, TouchableOpacity } from "react-native";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, fetchTestingFeedback, startSession } from "../config/API requests";
@@ -87,6 +87,28 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [finalModalVisible, setFinalModalVisible] = React.useState(false);
   const [isAnswerHalfCorrect, setIsAnswerHalfCorrect] = React.useState(false);
   // const [funcToRetry, setFuncToRetry] = React.useState<() => void>(() => () => {});
+  const translateYFeedbackModal = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 5,
+      onPanResponderGrant: () => {},
+      onPanResponderMove: (event, gesture) => {
+        //Animated.event([null, {dy: translateYFeedbackModal}])(event, gesture);
+        if (gesture.dy > 0){
+          translateYFeedbackModal.setValue(gesture.dy);
+        }
+      },
+      onPanResponderRelease: (event, gesture) => {
+        Animated.spring(translateYFeedbackModal, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+        
+      },
+    })
+  ).current;
 
   useEffect(() => {
     const backAction = () => {
@@ -373,7 +395,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         <Pressable onPress={() => setOptionsModalVisible(true)} style={styles.backButton}>
               <Icon name="arrow-back" size={24} color="black" />
             </Pressable>
-            <Text style={styles.toptext}>Testing Section</Text>
+            <Text style={styles.toptext}>Test Mode</Text>
           <Text style={styles.header}>Ask {stageQuestionCount[stage - 1]} questions appropriate for {stage_name}</Text>
           <View style={[styles.speechBubble, styles.speechBubbleContent]} >
             <Text style={stage === 1 ? styles.scenarioTextStage1 : styles.scenarioTestNotStage1}>
@@ -457,17 +479,23 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
             onRequestClose={handleCloseFinalModal}
           >
             <View style={styles.modalOverlay}>
-              <View style={[styles.modalContent, styles.correctModal ]}>
-                <Text style={styles.modalText}>
-                  Well done! You have completed the testing section.
-                </Text>
-                <Pressable
-                  style={[styles.modalButton, styles.correctButton]}
-                  onPress={() => onFinalModalHomePress()}
-                >
-                  <Text style={styles.buttonText}>Home</Text>
-                </Pressable>
-              </View>
+              <Animated.View pointerEvents="auto" style={[styles.modalContent, styles.correctModal, {transform : [{translateY: translateYFeedbackModal}]}]} {...panResponder.panHandlers}>
+                <View>
+                  <View style={styles.modalHeader}>
+                    <Icon name="chevron-down" size={30} color={colors.lightText}/>
+                  </View>
+
+                  <Text style={styles.modalText}>
+                    Well done! You have completed the testing section.
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.correctButton]}
+                    onPress={() => onFinalModalHomePress()}
+                  >
+                    <Text style={styles.buttonText}>Home</Text>
+                  </TouchableOpacity>
+                </View>
+              </Animated.View>
             </View>
           </Modal>
            <Modal
@@ -656,11 +684,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 10,
+    textAlign: 'center'
   },
   modalButton: {
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 10,
+  },
+  modalHeader: {
+    alignItems: 'center'
   },
   correctButton: {
     backgroundColor: '#388E3C', 
@@ -676,6 +708,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign:  'center'
   },
   typingIndicator: {
     flexDirection: 'row',

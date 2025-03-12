@@ -3,13 +3,15 @@ import {
     View,
     Image,
     StyleSheet,
-    BackHandler
+    BackHandler,
+    Pressable
   } from "react-native";
   
   import colors from "../config/colors";
   import { Button } from '@rneui/base';
   import { RootStackParamList } from "../config/types";
   import { NativeStackScreenProps } from '@react-navigation/native-stack';
+  import Icon from 'react-native-vector-icons/Ionicons';
   
   type Props = NativeStackScreenProps<RootStackParamList, "Home">;
   
@@ -30,6 +32,9 @@ import {
     console.log("We got to welcome!!");
     return (
       <View style={styles.background}>
+        <Pressable onPress={()=>navigation.navigate("AboutScreen")} style={styles.aboutButton}>
+          <Icon name="information-circle-outline" size={40} color={colors.darkText}/>
+        </Pressable>
         <View style={styles.logoContainer}>
           <Image source = {require("../assets/images/llamalogo.png")} style={styles.logo}/>
         </View>
@@ -73,6 +78,11 @@ import {
       alignItems: 'center',
       backgroundColor: 'lightgreen',
       top: 0
+    },
+    aboutButton: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
     },
     loginButton: {
       width: "40%",

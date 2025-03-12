@@ -227,7 +227,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
              <Pressable onPress={() => setOptionsModalVisible(true)} style={styles.backButton}>
                           <Icon name="arrow-back" size={30} color={colors.darkText} />
                         </Pressable>
-                        <Text style={styles.toptext}>Practice Section</Text>
+                        <Text style={styles.toptext}>Practice Mode</Text>
       <Pressable style={styles.optionsButton} onPress={() => setOptionsModalVisible(true)}>
               <View style={styles.optionsIcon}>
                 <View style={styles.bar} />
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   modalHeader:{
-    alignItems: 'center',
+    alignItems: 'center'
   },
   correctButton: {
     backgroundColor: colors.correctButton, 
