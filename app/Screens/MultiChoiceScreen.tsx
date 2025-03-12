@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, Image, Animated, PanResponder } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, Image, Animated, PanResponder, BackHandler } from 'react-native';
 
 import colors from '../config/colors';
 import { fetchQuestion } from '../config/API requests';
@@ -98,6 +98,18 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleCloseModal = () => {
     setModalVisible(false);
   };
+
+  useEffect(() => {
+    const backAction = () => {
+      setOptionsModalVisible(true);
+    return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+    return () => backHandler.remove();
+  }, []);
 
   const handleOptionPress = (option: number) => { 
     const optionString = optionsFromLLM[option];

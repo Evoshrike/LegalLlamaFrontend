@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, TextInput, Button, ScrollView, StyleSheet, Modal, Pressable, Image, Dimensions } from "react-native";
+import { View, Text, TextInput, Button, ScrollView, StyleSheet, Modal, Pressable, Image, Dimensions, BackHandler } from "react-native";
 import { RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getHighScores } from "../config/PersistentState";
@@ -39,6 +39,18 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
 
         getTop5Scores();
         confettiRef.current?.start();
+    }, []);
+
+    useEffect(() => {
+        const backAction = () => {
+            navigation.goBack();
+        return true;
+        };
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            backAction
+        );
+        return () => backHandler.remove();
     }, []);
     
     return (
