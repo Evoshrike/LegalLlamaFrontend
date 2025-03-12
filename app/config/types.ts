@@ -40,7 +40,18 @@ type testing_feedback = {
   q_type: string;
   q_stage: number;
   context_switch: boolean;
+  stage_confidence: number;
 }
+
+// for passing to feedback function
+type testing_feedback_report = {
+  q_type: string;
+  q_stage: number;
+  context_switch: boolean;
+  stage_confidence: number;
+  type_confidence: number;
+}
+
 
 type item =  { key: string, label: string }
 
@@ -58,6 +69,7 @@ type categorize_response = {
 
 
   export {RootStackParamList, q_and_a, feedback, item, 
-    categorized_question, chat_request, testing_feedback_input, testing_feedback, highscore, categorize_response};
+    categorized_question, chat_request, testing_feedback_input, testing_feedback, 
+    highscore, categorize_response, testing_feedback_report};
 
   export default {}

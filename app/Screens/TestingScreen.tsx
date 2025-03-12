@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, Touchabl
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, fetchTestingFeedback, startSession } from "../config/API requests";
-import { q_and_a, RootStackParamList } from "../config/types";
+import { q_and_a, RootStackParamList, testing_feedback, testing_feedback_report } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Button } from "@rneui/base";
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -86,6 +86,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [waitingForResponse, setWaitingForResponse] = React.useState(false); 
   const [finalModalVisible, setFinalModalVisible] = React.useState(false);
   const [isAnswerHalfCorrect, setIsAnswerHalfCorrect] = React.useState(false);
+  const [listOfFeedback, setListOfFeedback] = React.useState<testing_feedback_report[]>([]);
+  const [sendEnabled, setSendEnabled] = React.useState(false);
   // const [funcToRetry, setFuncToRetry] = React.useState<() => void>(() => () => {});
   const translateYFeedbackModal = useRef(new Animated.Value(0)).current;
 
@@ -125,6 +127,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleSend = () => {
     Keyboard.dismiss();
+    setSendEnabled(false);
     if (questionCount < 5) {
       if (input.trim()) {
         setLastQuestion(input);
@@ -138,15 +141,15 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  async function onFinishingInterview(q_and_a_pairs: Array<q_and_a>) {
+  async function onFinishingInterview(q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback_report>) {
     try {
       setWaitingForResponse(true);
-      const feedbackJSON = await fetchFeedback(q_and_a_pairs);
+      const feedbackJSON = await fetchFeedback(q_and_a_pairs, list_feedback, stage);
       setIsAnswerCorrect(feedbackJSON.is_correct);
       setIsAnswerHalfCorrect(feedbackJSON.is_half_correct);
       setFeedback(feedbackJSON.message);
       // wait 1 second before showing feedback
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       if (feedbackJSON.is_correct) {
         setFinalModalVisible(true);
       } else {
@@ -156,7 +159,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       console.log("Error fetching end-of-interview feedback:", error);
       setNetworkErrorModalVisible(true);
     };
-    setFinalModalVisible(true);
+  
   };
 
   const onFinalModalHomePress = () => {
@@ -164,30 +167,37 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation.navigate("Home");
   };
 
-  const handleNavigation = (q_and_a_pairs: Array<q_and_a>) => {
+  const handleNavigation = (q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback_report>) => {
+    var dontSet = false;
     switch (stage) {
       case 1: {
         if (questionCount === stageQuestionCount[0] - 1){
-          
-          onMovingStage(q_and_a_pairs);
+          dontSet = true;
+          onMovingStage(q_and_a_pairs, list_feedback);
         }
         break;
       };
       case 2: {
         if (questionCount === stageQuestionCount[1] - 1){
+          dontSet = true;
           console.log("stage 2: ", stage);
-          onFinishingInterview(q_and_a_pairs);
+          onMovingStage(q_and_a_pairs, list_feedback);
       }
       break;
     };
       case 3: {
         if (questionCount === stageQuestionCount[2] - 1){
+          dontSet = true;
           console.log("stage 3: ", stage);
-          onFinishingInterview(q_and_a_pairs);
+          onFinishingInterview(q_and_a_pairs, list_feedback);
         }
         break;
       };
     };
+    if (!dontSet){
+      setSendEnabled(true);
+    }
+    
   }; 
   const simulateBotResponse = async (userMessage: string) => {
     setBotTyping(true);
@@ -196,12 +206,11 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setWaitingForResponse(true);
       const botMessage = await fetchChatResponse(chat_prompt);
       setWaitingForResponse(false);
-      
-      displayMessageCharacterByCharacter(botMessage, 0, () => onEachQuestion(userMessage));
       const updatedQAndAPairs = [...qAndAPairs, { question: userMessage, response: botMessage }];
       setQAndAPairs(updatedQAndAPairs);
-      console.log("Updated Q and A pairs: ", updatedQAndAPairs);
-      handleNavigation(updatedQAndAPairs);
+      
+      displayMessageCharacterByCharacter(botMessage, 0, () => onEachQuestion(userMessage, updatedQAndAPairs, botMessage));
+      
     } catch (error) {
       console.error("Error fetching bot response:", error);
       const errorMessage = "There was an error fetching a response. Please try again later.";
@@ -237,23 +246,29 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
             clearInterval(interval);
             setBotTyping(false);
             if (callback) {
+                console.log("callback");
                 callback();
             }
         }
     }, 10);
 };
 
-  async function onEachQuestion(last_question: string) {
+  async function onEachQuestion(last_question: string, q_and_a_pairs: Array<q_and_a>, lastResponse: string) {
     try {
       if (questionCount != 0){
         
         const penultimate_QApair = qAndAPairs[qAndAPairs.length - 1];
         const testing_feedback_input = { question_1: penultimate_QApair.question, response: penultimate_QApair.response, question_2: last_question };
         const testing_feedback = await fetchTestingFeedback(testing_feedback_input);
-        const context_switch = testing_feedback.context_switch;
-        const q_type = testing_feedback.q_type
+        const stage_confidence = testing_feedback.stage_confidence;
+        
+        const context_switch = testing_feedback.context_switch && stage === 2;
+        const q_type = testing_feedback.q_type[0];
+        const q_type_confidence = Number(testing_feedback.q_type[1]);
+        console.log("q_type: ", q_type);
         const q_stage = testing_feedback.q_stage;
-        const wrong_stage = (q_stage != stage);
+        // WILL ALLOW STAGE 1 == STAGE 3 (the classifier is bad at differentiating these)
+        const wrong_stage = (q_stage % 2 != stage % 2) && stage_confidence > 0.75;
         var message = "";
         if (context_switch) {
           message += "You have switched context. Please avoid doing so unless prompted by the interviewee.";
@@ -266,37 +281,76 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
           };
           message += "ou have asked a question that is not appropriate for this stage. Your question is for stage " + q_stage + " but we are currently in stage " + stage + ".";
         };
-        if (q_type == "Suggestive"){
+        if (q_type == "Suggestive" && q_type_confidence > 0.75){
+          console.log("Suggestive question asked");
           if (context_switch || wrong_stage){
             message += " Also, p";
           } else {
             message += "P";
           };
-          message += " lease avoid asking suggestive questions.";
+          message += "lease avoid asking suggestive questions.";
         }
+        const new_feedback = { q_type: q_type, q_stage: q_stage, context_switch: context_switch, stage_confidence: stage_confidence, type_confidence: q_type_confidence };
+        const updatedListOfFeedback = [...listOfFeedback, new_feedback];
+        console.log("updated list of feedback: ", updatedListOfFeedback);
+        setListOfFeedback(updatedListOfFeedback);
         if (message.length > 0) {
           displayMessageCharacterByCharacter(message, -1);
         };
-      };
+        handleNavigation(q_and_a_pairs, updatedListOfFeedback);
+      } else {
+        const testing_feedback_input = { question_1: "", response: "", question_2: last_question };
+        const testing_feedback = await fetchTestingFeedback(testing_feedback_input);
+        const stage_confidence = testing_feedback.stage_confidence;
+        const q_type = testing_feedback.q_type[0];
+        const q_type_confidence = Number(testing_feedback.q_type[1]);
+        console.log("q_type: ", q_type);
+        const q_stage = testing_feedback.q_stage;
+        const wrong_stage = (q_stage % 2 != stage % 2) && stage_confidence > 0.75;
+        var message = "";
+        if (wrong_stage) {
+          message += "You have asked a question that is not appropriate for this stage. Your question is for stage " + q_stage + " but we are currently in stage " + stage + ".";
+        };
+        if (q_type == "Suggestive" && q_type_confidence > 0.75){
+          console.log("Suggestive question asked");
+          if (wrong_stage){
+            message += " Also, p";
+          } else {
+            message += "P";
+          };
+          message += "lease avoid asking suggestive questions.";
+        }
+        const new_feedback = { q_type: q_type, q_stage: q_stage, context_switch: false, stage_confidence, type_confidence: q_type_confidence };
+        const updatedListOfFeedback = [...listOfFeedback, new_feedback];
+        console.log("updated list of feedback: ", updatedListOfFeedback);
+        setListOfFeedback(updatedListOfFeedback);
+        if (message.length > 0) {
+          displayMessageCharacterByCharacter(message, -1);
+        };
+        handleNavigation(q_and_a_pairs, updatedListOfFeedback);
+        
+      }
     } catch (error) {
       console.log("Error fetching per-quetsion feedback:", error);  
       setNetworkErrorModalVisible(true);
     }
+    
   };
 
-  async function onMovingStage(q_and_a_pairs: Array<q_and_a>): Promise<undefined> {
+  async function onMovingStage(q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback_report>): Promise<undefined> {
     try {
+      setSendEnabled(false);
       setWaitingForResponse(true);
       console.log("Moving stage");
   
-      const feedbackJSON = await fetchFeedback(q_and_a_pairs);
+      const feedbackJSON = await fetchFeedback(q_and_a_pairs, list_feedback, stage);
   
       setIsAnswerCorrect(feedbackJSON.is_correct);
       setIsAnswerHalfCorrect(feedbackJSON.is_half_correct);
-      console.log("half correct: ", feedbackJSON.is_half_correct);
+      
       setFeedback(feedbackJSON.message);
       // wait 1 second before showing feedback
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       setModalVisible(true);
     } catch (error) {
       console.log("Error fetching end-of-stage feedback:", error);
@@ -347,7 +401,10 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
-    displayMessageCharacterByCharacter(scenario, 0);
+    
+    displayMessageCharacterByCharacter(scenario, 0, () => enableSendOnDisplayScenario(scenario));
+    
+    
   }, [scenario]);
 
   const handleCloseModal = () => {
@@ -359,6 +416,12 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation.navigate("Home");
   };
 
+  const enableSendOnDisplayScenario = (scenario: string) => {
+    if (scenario.length > 0){
+      setSendEnabled(true);
+    }
+  }
+
   const handleAnswer = (isCorrect: boolean) => {
     setModalVisible(false);
     setWaitingForResponse(false);
@@ -368,6 +431,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setQuestionCount(0);
       setIsAnswerCorrect(null);
       setFeedback(null);
+      setListOfFeedback([]);
+      setSendEnabled(true);
       navigation.navigate("TestingScreen", { stage: stage + 1 });
     } else {
       setMessages([]);
@@ -375,9 +440,11 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setQuestionCount(0);
       setIsAnswerCorrect(null);
       setFeedback(null);
+      setListOfFeedback([]);
       if (stage === 1){
-        displayMessageCharacterByCharacter(scenario, 0);
+        displayMessageCharacterByCharacter(scenario, 0, () => enableSendOnDisplayScenario(scenario));
       }
+      setSendEnabled(true);
       // navigation.navigate("TestingScreen", { stage: stage });
     }
   };
@@ -417,7 +484,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
               scrollEnabled={true}
             />
             <View style={styles.buttonContainer}>
-            <Button title="SEND" onPress={handleSend} style={styles.sendButtonStyle} />
+            <Button title="SEND" onPress={handleSend} style={styles.sendButtonStyle} 
+            disabled={!sendEnabled} />
             </View>
           </View>
           <Modal

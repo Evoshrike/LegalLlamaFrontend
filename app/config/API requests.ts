@@ -1,12 +1,13 @@
 
 const onAndroid = false; // Variable for accessing localhost on emulator vs local device
-const remote = true; // Variable for accessing remote server vs local server
+const remote = false; // Variable for accessing remote server vs local server
 const timeout = 10000; // Timeout for API requests
 
 // Old server ip: http://18.175.217.103:8000
 
 const url = remote ? 'http://18.130.224.226:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
-import { categorize_response, categorized_question, chat_request, feedback, q_and_a, testing_feedback, testing_feedback_input } from './types';
+import { calculateFeedback } from './Feedback';
+import { categorize_response, categorized_question, chat_request, feedback, q_and_a, testing_feedback, testing_feedback_input, testing_feedback_report } from './types';
 
 async function fetchResponse(prompt: string): Promise<string> {
     
@@ -68,7 +69,7 @@ async function fetchChatResponse(prompt: chat_request): Promise<string> {
     return message;
 } 
 
-async function fetchFeedback(conversation: Array<q_and_a>): Promise<feedback> {
+async function fetchFeedback(conversation: Array<q_and_a>, listFeedback: Array<testing_feedback_report>, stage: number): Promise<feedback> {
     console.log("fetching feedback");
     const responseURL = url + '/end-stage-feedback';
     
@@ -97,14 +98,16 @@ async function fetchFeedback(conversation: Array<q_and_a>): Promise<feedback> {
     
 
     const responseJSON = await response.json();
-    const score = responseJSON.score;
-    let feedback = { is_correct: false, is_half_correct: false, message: "Incorrect! Try again.", score: score };
+    // Score calculated from the sum of all the live feedback responses, as opposed to the seperate API call to end stage feedback
+    const internalFeedback = calculateFeedback(listFeedback, responseJSON, stage);
+    const score = internalFeedback.score;
+    let feedback = { is_correct: false, is_half_correct: false, message: "You have switched context! Try again, and try to avoid this.", score: score };
     
-        if (score > 7)
+        if (score > 8)
             { feedback = { is_correct: true, is_half_correct: false, message: "Good job!", score: score }; 
              
             }
-        else if (score > 4 && score < 8)
+        else if (score > 4 && score < 9)
             { feedback = { is_correct: false, is_half_correct: true, message: "Almost there!", score: score };
             
             }
@@ -171,6 +174,7 @@ async function fetchTestingFeedback(conversation: testing_feedback_input): Promi
     
 
     const responseJSON = await response.json();
+    console.log(responseJSON);
     return responseJSON;
 } 
 
