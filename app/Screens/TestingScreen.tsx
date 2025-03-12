@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView, Animated, Dimensions } from "react-native";
+import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, TouchableWithoutFeedback, Keyboard, ScrollView, KeyboardAvoidingView, Animated, Dimensions, BackHandler } from "react-native";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, fetchTestingFeedback, startSession } from "../config/API requests";
@@ -88,6 +88,18 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isAnswerHalfCorrect, setIsAnswerHalfCorrect] = React.useState(false);
   const [listOfFeedback, setListOfFeedback] = React.useState<testing_feedback[]>([]);
   // const [funcToRetry, setFuncToRetry] = React.useState<() => void>(() => () => {});
+
+  useEffect(() => {
+    const backAction = () => {
+      setOptionsModalVisible(true);
+    return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+    return () => backHandler.remove();
+  }, []);
   
 
   const handleSend = () => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, Image, Animated, PanResponder } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, Image, Animated, PanResponder, BackHandler } from 'react-native';
 
 import colors from '../config/colors';
 import { fetchQuestion } from '../config/API requests';
@@ -31,7 +31,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   ];
   const [userWrongOption, setUserWrongOption] = React.useState(0);
   const [categoryNum, setCategoryNum] = React.useState(1);
-  const translateYFeedback = useRef(new Animated.Value(0)).current;
+  const translateYFeedbackModal = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -39,11 +39,13 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
       onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 5,
       onPanResponderGrant: () => {},
       onPanResponderMove: (event, gesture) => {
-        //Animated.event([null, {dy: translateYFeedback}])(event, gesture);
-        translateYFeedback.setValue(gesture.dy);
+        //Animated.event([null, {dy: translateYFeedbackModal}])(event, gesture);
+        if (gesture.dy > 0){
+          translateYFeedbackModal.setValue(gesture.dy);
+        }
       },
       onPanResponderRelease: (event, gesture) => {
-        Animated.spring(translateYFeedback, {
+        Animated.spring(translateYFeedbackModal, {
           toValue: 0,
           useNativeDriver: true,
         }).start();
@@ -97,6 +99,18 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
     setModalVisible(false);
   };
 
+  useEffect(() => {
+    const backAction = () => {
+      setOptionsModalVisible(true);
+    return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+    return () => backHandler.remove();
+  }, []);
+
   const handleOptionPress = (option: number) => { 
     const optionString = optionsFromLLM[option];
     if (optionString == category || (alwaysOpenEnded && option == 0)) {
@@ -121,14 +135,18 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const updateHighScoresList = async () => {
     const pastScores = await getHighScores();
+    let newScores = [...pastScores];
+    console.log(pastScores);
     const pastScoresLen = pastScores.length;
     let insertIndex = null;
 
     for (let i = 1; i <= 5 && i <= pastScoresLen; i++) {
       if (pastScores[pastScoresLen - i].score < highscore) {
         insertIndex = pastScoresLen - i + 1;
-        pastScores.splice(insertIndex, 0, {score: highscore, date: new Date().toDateString()});
-        await saveHighScores(pastScores);
+        newScores.splice(insertIndex, 0, {score: highscore, date: new Date().toDateString()});
+        newScores = newScores.slice(-5);
+        console.log(newScores);
+        await saveHighScores(newScores);
         break;
       }
     }
@@ -250,16 +268,22 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
         onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
-          <Animated.View pointerEvents="box-none" style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal, {transform : [{translateY: translateYFeedback}]}]} {...panResponder.panHandlers}>
-            <Text style={styles.modalText}>
-              {isAnswerCorrect ? "Well Done!" : `Wrong Answer \n ${feedback[userWrongOption]} \n\n HINT: \n ${feedback[categoryNum]}`}
-            </Text>
-            <TouchableOpacity
-              style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
-              onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
-            >
-              <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
-          </TouchableOpacity>
+          <Animated.View pointerEvents="auto" style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal, {transform : [{translateY: translateYFeedbackModal}]}]} {...panResponder.panHandlers}>
+            <View>
+              <View style={styles.modalHeader}>
+                <Icon name="chevron-down" size={30} color={colors.lightText}/>
+              </View>
+              
+              <Text style={styles.modalText}>
+                {isAnswerCorrect ? "Well Done!" : `Wrong Answer \n ${feedback[userWrongOption]} \n\n HINT: \n ${feedback[categoryNum]}`}
+              </Text>
+              <TouchableOpacity
+                style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
+                onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
+              >
+                <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
+              </TouchableOpacity>
+            </View>
           </Animated.View>
           
         </View>
@@ -510,6 +534,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 10,
   },
+  modalHeader:{
+    alignItems: 'center',
+  },
   correctButton: {
     backgroundColor: colors.correctButton, 
   },
@@ -520,6 +547,7 @@ const styles = StyleSheet.create({
     color: colors.lightText,
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   typingIndicator: {
     flexDirection: 'row',

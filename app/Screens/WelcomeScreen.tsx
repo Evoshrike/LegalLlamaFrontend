@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import {
     View,
     Image,
     StyleSheet,
+    BackHandler
   } from "react-native";
   
   import colors from "../config/colors";
@@ -12,6 +14,18 @@ import {
   type Props = NativeStackScreenProps<RootStackParamList, "Home">;
   
   const WelcomeScreen: React.FC<Props> = ({ navigation, route }) =>  {
+
+    useEffect(() => {
+        const backAction = () => {
+          BackHandler.exitApp();
+        return true;
+        };
+        const backHandler = BackHandler.addEventListener(
+          "hardwareBackPress",
+          backAction
+        );
+        return () => backHandler.remove();
+      }, []);
     
     console.log("We got to welcome!!");
     return (

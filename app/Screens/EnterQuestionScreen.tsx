@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Text, BackHandler, TextInput, Modal, TouchableOpacity, Pressable, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Keyboard, Animated } from "react-native";
+import { Text, BackHandler, TextInput, Modal, TouchableOpacity, Pressable, TouchableWithoutFeedback, KeyboardAvoidingView, Platform, Keyboard, Animated, PanResponder } from "react-native";
 import { View, Image, StyleSheet } from "react-native";
 import colors from "../config/colors";
 import { Button } from "@rneui/base";
@@ -15,6 +15,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "EnterQuestionScreen">;
 const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   // For testing purposes, marks all questions as correct (still performs API call)
   // to test navigation. For production, set to false. 
+
   const alwaysCorrect = false;
   const { question_type_index, successiveQuestionCount } = route.params;
   
@@ -39,6 +40,34 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   const [optionsModalVisible, setOptionsModalVisible] = React.useState(false);
   const [networkErrorModalVisible, setNetworkErrorModalVisible] = React.useState(false);
   const [waitingForResponse, setWaitingForResponse] = React.useState(false);
+  const feedback = [["An example of an open-ended question is 'What happened?'", "An example of an open-ended question is 'Can you tell me about what happened?'", "An example of an open-ended question is 'Tell me everything.'"],
+  ["An example of a directive question is 'Who hurt you?'", "An example of a directive question is 'What did he do to you?'", "An example of a directive question is 'Where were you when this happened?'", "An example of a directive question is 'Who did this to you'"], 
+  ["An example of an option posing question is 'Did he slap you or did he kick you'", "An example of an option posing question is 'Did you go straight home or did you go to their house?'", "An example of an option posing question is 'Did she give you water or coffee?'"],
+  ["An example of a suggestive question is 'He hit you, didn't he?'", "An example of a suggestive question is 'You said you went home early, you went to her house didn't you?'", "An example of a suggestive question is 'Did he do anything else, did he hit you?'"]
+];
+  const [currentExample,setCurrentExample] = React.useState("");
+  const translateYFeedbackModal = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 5,
+        onPanResponderGrant: () => {},
+        onPanResponderMove: (event, gesture) => {
+          //Animated.event([null, {dy: translateYFeedbackModal}])(event, gesture);
+          if (gesture.dy > 0){
+            translateYFeedbackModal.setValue(gesture.dy);
+          }
+        },
+        onPanResponderRelease: (event, gesture) => {
+          Animated.spring(translateYFeedbackModal, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+          
+        },
+      })
+    ).current;
 
   const TypingIndicator: React.FC = () => {
       const dot1 = useRef(new Animated.Value(0)).current;
@@ -79,6 +108,11 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
     };
 
   const handleSubmit = async () => {
+
+    const randomIndex = Math.floor(Math.random() * feedback[question_type_index - 1].length);
+    const example = feedback[question_type_index - 1][randomIndex];
+    setCurrentExample(example);
+
     try {
       setWaitingForResponse(true);
       const response = await categorizeQuestion(question);
@@ -99,6 +133,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
       setNetworkErrorModalVisible(true);
       setWaitingForResponse(false);
     }
+    
   };
 
   const handleCloseModal = () => {
@@ -144,14 +179,18 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const updateHighScoresList = async () => {
     const pastScores = await getHighScores();
+    let newScores = [...pastScores];
+    console.log(pastScores);
     const pastScoresLen = pastScores.length;
     let insertIndex = null;
 
     for (let i = 1; i <= 5 && i <= pastScoresLen; i++) {
       if (pastScores[pastScoresLen - i].score < highscore) {
         insertIndex = pastScoresLen - i + 1;
-        pastScores.splice(insertIndex, 0, {score: highscore, date: new Date().toDateString()});
-        await saveHighScores(pastScores);
+        newScores.splice(insertIndex, 0, {score: highscore, date: new Date().toDateString()});
+        newScores = newScores.slice(-5);
+        console.log(newScores);
+        await saveHighScores(newScores);
         break;
       }
     }
@@ -258,21 +297,30 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
         onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, confidentAboutAnswer ? 
+          <Animated.View pointerEvents="auto" 
+          style={[styles.modalContent, confidentAboutAnswer ? 
           (isAnswerCorrect ? styles.correctModal : styles.incorrectModal)
-        : styles.unsureModal]}>
-            <Text style={styles.modalText}>
-              {confidentAboutAnswer ? (isAnswerCorrect ? "Well Done!" : "Wrong Answer") : "We aren't sure about this one. Try to make your question a closer fit to the category"}
-            </Text>
-            <Pressable
-              style={[styles.modalButton, confidentAboutAnswer ? 
-                (isAnswerCorrect ? styles.correctButton : styles.incorrectButton)
-              : styles.unsureButton]}
-              onPress={() => handleAnswer(isAnswerCorrect ? true : false, confidentAboutAnswer ? true : false)}
-            >
-              <Text style={styles.buttonText}>{confidentAboutAnswer ? (isAnswerCorrect ? "Continue" : "Got It") : "Try Again"}</Text>
-            </Pressable>
-          </View>
+          : styles.unsureModal,
+          {transform: [{translateY: translateYFeedbackModal}]}]}
+          {...panResponder.panHandlers}>
+          
+            <View>
+              <View style={styles.modalHeader}>
+                <Icon name="chevron-down" size={30} color={colors.lightText}/>
+              </View>
+              <Text style={styles.modalText}>
+                {confidentAboutAnswer ? (isAnswerCorrect ? "Well Done!" : `Wrong Answer \n\nHere's a hint:\n ${currentExample}`) : "We aren't sure about this one. Try to make your question a closer fit to the category"}
+              </Text>
+              <TouchableOpacity
+                style={[styles.modalButton, confidentAboutAnswer ? 
+                  (isAnswerCorrect ? styles.correctButton : styles.incorrectButton)
+                : styles.unsureButton]}
+                onPress={() => handleAnswer(isAnswerCorrect ? true : false, confidentAboutAnswer ? true : false)}
+              >
+                <Text style={styles.buttonText}>{confidentAboutAnswer ? (isAnswerCorrect ? "Continue" : "Got It") : "Try Again"}</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
         </View>
       </Modal>
       <Modal
@@ -445,6 +493,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 10,
   },
+  modalHeader:{
+    alignItems: 'center',
+  },
   correctButton: {
     backgroundColor: colors.correctButton,
   },
@@ -458,6 +509,7 @@ const styles = StyleSheet.create({
     color: colors.lightText,
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   textInput: {
     justifyContent: "flex-start",

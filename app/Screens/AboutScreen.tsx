@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { View, Text,Switch, StyleSheet, Animated, Pressable } from 'react-native';
+import { View, Text,Switch, StyleSheet, Animated, Pressable, BackHandler } from 'react-native';
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from '../config/types';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -53,6 +53,18 @@ const AboutScreen: React.FC<Props> = ({ navigation }) => {
     const handleGoBack = () => {
         navigation.goBack();
       };
+
+    useEffect(() => {
+        const backAction = () => {
+          navigation.goBack();
+        return true;
+        };
+        const backHandler = BackHandler.addEventListener(
+          "hardwareBackPress",
+          backAction
+        );
+        return () => backHandler.remove();
+    }, []);
         
 
     const toggleSwitch = (option: boolean, setOption: React.Dispatch<React.SetStateAction<boolean>>, animatedValue: Animated.Value) => {
