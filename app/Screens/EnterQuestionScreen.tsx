@@ -55,7 +55,9 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
         onPanResponderGrant: () => {},
         onPanResponderMove: (event, gesture) => {
           //Animated.event([null, {dy: translateYFeedbackModal}])(event, gesture);
-          translateYFeedbackModal.setValue(gesture.dy);
+          if (gesture.dy > 0){
+            translateYFeedbackModal.setValue(gesture.dy);
+          }
         },
         onPanResponderRelease: (event, gesture) => {
           Animated.spring(translateYFeedbackModal, {
@@ -177,14 +179,18 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const updateHighScoresList = async () => {
     const pastScores = await getHighScores();
+    let newScores = [...pastScores];
+    console.log(pastScores);
     const pastScoresLen = pastScores.length;
     let insertIndex = null;
 
     for (let i = 1; i <= 5 && i <= pastScoresLen; i++) {
       if (pastScores[pastScoresLen - i].score < highscore) {
         insertIndex = pastScoresLen - i + 1;
-        pastScores.splice(insertIndex, 0, {score: highscore, date: new Date().toDateString()});
-        await saveHighScores(pastScores);
+        newScores.splice(insertIndex, 0, {score: highscore, date: new Date().toDateString()});
+        newScores = newScores.slice(-5);
+        console.log(newScores);
+        await saveHighScores(newScores);
         break;
       }
     }
@@ -291,24 +297,29 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
         onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
-          <Animated.View pointerEvents="box-none" 
+          <Animated.View pointerEvents="auto" 
           style={[styles.modalContent, confidentAboutAnswer ? 
           (isAnswerCorrect ? styles.correctModal : styles.incorrectModal)
-        : styles.unsureModal,
+          : styles.unsureModal,
           {transform: [{translateY: translateYFeedbackModal}]}]}
           {...panResponder.panHandlers}>
-
-            <Text style={styles.modalText}>
-              {confidentAboutAnswer ? (isAnswerCorrect ? "Well Done!" : `Wrong Answer \n\nHere's a hint:\n ${currentExample}`) : "We aren't sure about this one. Try to make your question a closer fit to the category"}
-            </Text>
-            <TouchableOpacity
-              style={[styles.modalButton, confidentAboutAnswer ? 
-                (isAnswerCorrect ? styles.correctButton : styles.incorrectButton)
-              : styles.unsureButton]}
-              onPress={() => handleAnswer(isAnswerCorrect ? true : false, confidentAboutAnswer ? true : false)}
-            >
-              <Text style={styles.buttonText}>{confidentAboutAnswer ? (isAnswerCorrect ? "Continue" : "Got It") : "Try Again"}</Text>
-            </TouchableOpacity>
+          
+            <View>
+              <View style={styles.modalHeader}>
+                <Icon name="chevron-down" size={30} color={colors.lightText}/>
+              </View>
+              <Text style={styles.modalText}>
+                {confidentAboutAnswer ? (isAnswerCorrect ? "Well Done!" : `Wrong Answer \n\nHere's a hint:\n ${currentExample}`) : "We aren't sure about this one. Try to make your question a closer fit to the category"}
+              </Text>
+              <TouchableOpacity
+                style={[styles.modalButton, confidentAboutAnswer ? 
+                  (isAnswerCorrect ? styles.correctButton : styles.incorrectButton)
+                : styles.unsureButton]}
+                onPress={() => handleAnswer(isAnswerCorrect ? true : false, confidentAboutAnswer ? true : false)}
+              >
+                <Text style={styles.buttonText}>{confidentAboutAnswer ? (isAnswerCorrect ? "Continue" : "Got It") : "Try Again"}</Text>
+              </TouchableOpacity>
+            </View>
           </Animated.View>
         </View>
       </Modal>
@@ -482,6 +493,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 10,
   },
+  modalHeader:{
+    alignItems: 'center',
+  },
   correctButton: {
     backgroundColor: colors.correctButton,
   },
@@ -495,6 +509,7 @@ const styles = StyleSheet.create({
     color: colors.lightText,
     fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   textInput: {
     justifyContent: "flex-start",
