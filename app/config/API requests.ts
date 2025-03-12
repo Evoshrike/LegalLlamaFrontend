@@ -6,6 +6,7 @@ const timeout = 10000; // Timeout for API requests
 // Old server ip: http://18.175.217.103:8000
 
 const url = remote ? 'http://18.130.224.226:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
+import { calculateFeedback } from './Feedback';
 import { categorize_response, categorized_question, chat_request, feedback, q_and_a, testing_feedback, testing_feedback_input } from './types';
 
 async function fetchResponse(prompt: string): Promise<string> {
