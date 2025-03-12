@@ -87,6 +87,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [finalModalVisible, setFinalModalVisible] = React.useState(false);
   const [isAnswerHalfCorrect, setIsAnswerHalfCorrect] = React.useState(false);
   const [listOfFeedback, setListOfFeedback] = React.useState<testing_feedback_report[]>([]);
+  const [sendEnabled, setSendEnabled] = React.useState(false);
   // const [funcToRetry, setFuncToRetry] = React.useState<() => void>(() => () => {});
 
   useEffect(() => {
@@ -104,6 +105,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleSend = () => {
     Keyboard.dismiss();
+    setSendEnabled(false);
     if (questionCount < 5) {
       if (input.trim()) {
         setLastQuestion(input);
@@ -144,16 +146,18 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const handleNavigation = (q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback_report>) => {
+    var dontSet = false;
     switch (stage) {
       case 1: {
         if (questionCount === stageQuestionCount[0] - 1){
-          
+          dontSet = true;
           onMovingStage(q_and_a_pairs, list_feedback);
         }
         break;
       };
       case 2: {
         if (questionCount === stageQuestionCount[1] - 1){
+          dontSet = true;
           console.log("stage 2: ", stage);
           onMovingStage(q_and_a_pairs, list_feedback);
       }
@@ -161,12 +165,17 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     };
       case 3: {
         if (questionCount === stageQuestionCount[2] - 1){
+          dontSet = true;
           console.log("stage 3: ", stage);
           onFinishingInterview(q_and_a_pairs, list_feedback);
         }
         break;
       };
     };
+    if (!dontSet){
+      setSendEnabled(true);
+    }
+    
   }; 
   const simulateBotResponse = async (userMessage: string) => {
     setBotTyping(true);
@@ -215,6 +224,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
             clearInterval(interval);
             setBotTyping(false);
             if (callback) {
+                console.log("callback");
                 callback();
             }
         }
@@ -307,6 +317,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
 
   async function onMovingStage(q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback_report>): Promise<undefined> {
     try {
+      setSendEnabled(false);
       setWaitingForResponse(true);
       console.log("Moving stage");
   
@@ -368,7 +379,10 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
-    displayMessageCharacterByCharacter(scenario, 0);
+    
+    displayMessageCharacterByCharacter(scenario, 0, () => enableSendOnDisplayScenario(scenario));
+    
+    
   }, [scenario]);
 
   const handleCloseModal = () => {
@@ -380,6 +394,12 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation.navigate("Home");
   };
 
+  const enableSendOnDisplayScenario = (scenario: string) => {
+    if (scenario.length > 0){
+      setSendEnabled(true);
+    }
+  }
+
   const handleAnswer = (isCorrect: boolean) => {
     setModalVisible(false);
     setWaitingForResponse(false);
@@ -390,6 +410,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setIsAnswerCorrect(null);
       setFeedback(null);
       setListOfFeedback([]);
+      setSendEnabled(true);
       navigation.navigate("TestingScreen", { stage: stage + 1 });
     } else {
       setMessages([]);
@@ -399,8 +420,9 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setFeedback(null);
       setListOfFeedback([]);
       if (stage === 1){
-        displayMessageCharacterByCharacter(scenario, 0);
+        displayMessageCharacterByCharacter(scenario, 0, () => enableSendOnDisplayScenario(scenario));
       }
+      setSendEnabled(true);
       // navigation.navigate("TestingScreen", { stage: stage });
     }
   };
@@ -440,7 +462,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
               scrollEnabled={true}
             />
             <View style={styles.buttonContainer}>
-            <Button title="SEND" onPress={handleSend} style={styles.sendButtonStyle} />
+            <Button title="SEND" onPress={handleSend} style={styles.sendButtonStyle} 
+            disabled={!sendEnabled} />
             </View>
           </View>
           <Modal
