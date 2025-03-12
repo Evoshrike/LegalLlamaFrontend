@@ -104,8 +104,24 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const onFinishingInterview = () => {
-  
+  async function onFinishingInterview(q_and_a_pairs: Array<q_and_a>) {
+    try {
+      setWaitingForResponse(true);
+      const feedbackJSON = await fetchFeedback(q_and_a_pairs);
+      setIsAnswerCorrect(feedbackJSON.is_correct);
+      setIsAnswerHalfCorrect(feedbackJSON.is_half_correct);
+      setFeedback(feedbackJSON.message);
+      // wait 1 second before showing feedback
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (feedbackJSON.is_correct) {
+        setFinalModalVisible(true);
+      } else {
+        setModalVisible(true);
+      }
+    } catch (error) {
+      console.log("Error fetching end-of-interview feedback:", error);
+      setNetworkErrorModalVisible(true);
+    };
     setFinalModalVisible(true);
   };
 
@@ -114,26 +130,26 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation.navigate("Home");
   };
 
-  const handleNavigation = () => {
+  const handleNavigation = (q_and_a_pairs: Array<q_and_a>) => {
     switch (stage) {
       case 1: {
         if (questionCount === stageQuestionCount[0] - 1){
           
-          onMovingStage();
+          onMovingStage(q_and_a_pairs);
         }
         break;
       };
       case 2: {
         if (questionCount === stageQuestionCount[1] - 1){
           console.log("stage 2: ", stage);
-          onFinishingInterview();
+          onFinishingInterview(q_and_a_pairs);
       }
       break;
     };
       case 3: {
         if (questionCount === stageQuestionCount[2] - 1){
           console.log("stage 3: ", stage);
-          onFinishingInterview();
+          onFinishingInterview(q_and_a_pairs);
         }
         break;
       };
@@ -146,9 +162,12 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setWaitingForResponse(true);
       const botMessage = await fetchChatResponse(chat_prompt);
       setWaitingForResponse(false);
-      displayMessageCharacterByCharacter(botMessage, 0, () => onEachQuestion());
-      setQAndAPairs([...qAndAPairs, { question: userMessage, response: botMessage }]);
-      handleNavigation();
+      
+      displayMessageCharacterByCharacter(botMessage, 0, () => onEachQuestion(userMessage));
+      const updatedQAndAPairs = [...qAndAPairs, { question: userMessage, response: botMessage }];
+      setQAndAPairs(updatedQAndAPairs);
+      console.log("Updated Q and A pairs: ", updatedQAndAPairs);
+      handleNavigation(updatedQAndAPairs);
     } catch (error) {
       console.error("Error fetching bot response:", error);
       const errorMessage = "There was an error fetching a response. Please try again later.";
@@ -190,11 +209,12 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     }, 10);
 };
 
-  async function onEachQuestion() {
+  async function onEachQuestion(last_question: string) {
     try {
       if (questionCount != 0){
-        const last_QApair = qAndAPairs[qAndAPairs.length - 1];
-        const testing_feedback_input = { question_1: last_QApair.question, response: last_QApair.response, question_2: lastQuestion };
+        
+        const penultimate_QApair = qAndAPairs[qAndAPairs.length - 1];
+        const testing_feedback_input = { question_1: penultimate_QApair.question, response: penultimate_QApair.response, question_2: last_question };
         const testing_feedback = await fetchTestingFeedback(testing_feedback_input);
         const context_switch = testing_feedback.context_switch;
         const q_type = testing_feedback.q_type
@@ -230,10 +250,13 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  async function onMovingStage(): Promise<undefined> {
+  async function onMovingStage(q_and_a_pairs: Array<q_and_a>): Promise<undefined> {
     try {
       setWaitingForResponse(true);
-      const feedbackJSON = await fetchFeedback(qAndAPairs);
+      console.log("Moving stage");
+  
+      const feedbackJSON = await fetchFeedback(q_and_a_pairs);
+  
       setIsAnswerCorrect(feedbackJSON.is_correct);
       setIsAnswerHalfCorrect(feedbackJSON.is_half_correct);
       console.log("half correct: ", feedbackJSON.is_half_correct);
@@ -254,7 +277,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       const scenario = await fetchScenario();
       setWaitingForResponse(false);
       setScenario(scenario);
-      console.log(scenario);
+      
     } catch (error) {
       console.log("Error fetching scenario:", error);
       handleNetworkError(generateScenario);
