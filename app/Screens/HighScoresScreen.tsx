@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, TextInput, Button, ScrollView, StyleSheet, Modal, Pressable, Image } from "react-native";
+import { View, Text, TextInput, Button, ScrollView, StyleSheet, Modal, Pressable, Image, Dimensions } from "react-native";
 import { RootStackParamList } from "../config/types";
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getHighScores } from "../config/PersistentState";
@@ -11,8 +11,11 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
+const { width, height } = Dimensions.get("window");
+
 const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
     const [topScore, setTopScore] = useState<highscore | null>(null);
+    const [otherScores, setOtherScores] = useState<highscore[]>([]);
 
     const handleGoBack = () => {
         navigation.goBack();
@@ -21,15 +24,20 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
     const confettiRef = useRef<ConfettiCanon>(null);
 
     useEffect(() => {
-        const getTopScore = async () => {
+        const getTop5Scores = async () => {
             const highScores = await getHighScores();
-            if (highScores.length > 0) {
-                const score = highScores[highScores.length - 1];
+            let len = highScores.length;
+            if (len > 0) {
+                const score = highScores[len - 1];
+                let otherScoresList = highScores.slice(0, len - 1);
+                otherScoresList = otherScoresList.reverse();
+                otherScoresList = otherScoresList.slice(0, 4);
                 setTopScore(score);
+                setOtherScores(otherScoresList);
             }
         };
 
-        getTopScore();
+        getTop5Scores();
         confettiRef.current?.start();
     }, []);
     
@@ -53,8 +61,32 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
 
 
             <View style={styles.scoresContainer}>
-                <Text style={styles.scoreTypeText}>PRACTICE STAGE: Max # of correct answers in a row</Text>
+                <View style={styles.scoresHeader}>
+                    <Text style={styles.scoreTypeText}>PRACTICE MODE</Text>
+                    <Text style={styles.scoreTypeText}># Correct answers in a row</Text>
+                </View>
+                
+                <View style={styles.scoreRowsContainer}>
+                    <View style={styles.topScoreRow}>
+                        { topScore !== null ?
+                            <Text style={styles.topScoreText}>1.    🔥{topScore.score}     {topScore.date}</Text>:
+                            <Text style={styles.topScoreText}>1.     -      -</Text>
+                        }
+                    </View>
 
+                    
+                    {otherScores.map((otherScore, i) => (
+                        <View style={styles.otherScoreRow} key={i}>
+                            <Text style={styles.otherScoreText}>{i+2}.     🔥{otherScore.score}      {otherScore.date}</Text>
+                        </View>
+                    ))}
+                    
+                    
+                </View>
+
+                
+                
+                {/*
                 { topScore !== null ? 
                     <>
                         <Text style={styles.scoreNumText}>🔥{topScore.score}</Text>
@@ -63,7 +95,8 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
                     <Text style={styles.noScoresText}>... </Text>
 
                 }
-                
+                */}
+
             </View>
 
             <ConfettiCanon ref={confettiRef} count={50} origin={{x: 0, y: 0}} fadeOut />
@@ -82,54 +115,97 @@ const styles = StyleSheet.create({
     headContainer: {
         justifyContent: "center",
         alignItems: "center",
-        width: "100%",
-        paddingTop: 20,
-        paddingBottom: 30,
+        width: width,
+        paddingVertical: height * 0.05,
         backgroundColor: colors.highScoresSecondary,
     },
     imageContainer: {
         justifyContent: "center",
         alignItems: "center",
-        marginVertical: 10,
     },
     image: {
-        width: 150,
-        height: 200,
-        marginTop: 20
+        width: width * 0.35,
+        height: height * 0.25,
     },
     title: {
-        fontSize: 40,
+        fontSize: 50,
         fontWeight: 'bold',
         fontStyle: 'italic',
-        marginTop: 20,
-        marginBottom: 0,
+        marginTop: height * 0.03,
         textAlign: "center",
-        marginHorizontal: 20,
+        marginHorizontal: width * 0.05,
         color: colors.lightText
       },
     
     scoresContainer:{
         flex: 1,
+        backgroundColor: colors.transparent,
+        width: width,
+    },
+    scoresHeader:{
         backgroundColor: colors.background,
         borderTopLeftRadius: 25,
         borderTopRightRadius: 25,
         borderTopWidth: 3,
-        borderLeftWidth: 1,
-        borderRightWidth: 1,
-        borderLeftColor: colors.background,
-        borderRightColor: colors.background,
+        borderBottomWidth: 3,
+        borderLeftWidth: 3,
+        borderRightWidth: 3,
+        borderLeftColor: "white",
+        borderRightColor: "white",
         borderTopColor: "white",
-        width: "100%",
-        paddingHorizontal: 20,
-        paddingTop: 35,
-        marginHorizontal: 20,
-        marginTop: 20,
+        borderBottomColor: "white",
+        width: width,
+        paddingHorizontal: width * 0.07,
+        paddingVertical: height * 0.015,
     },
     scoreTypeText:{
-        fontSize: 22,
+        fontSize: 20,
         color: colors.highScoresSecondary,
         fontWeight: 600,
+        textAlign: "center",
     },
+    scoreRowsContainer:{
+        flex: 1,
+        backgroundColor: colors.background,
+        borderWidth: 3,
+        borderColor: "white",
+    },
+    topScoreRow:{
+        flex: 2,
+        backgroundColor: colors.highScoresTertiary,
+        marginVertical: 5, 
+        marginHorizontal: 10,
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        paddingVertical: 2,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    otherScoreRow:{
+        flex: 1,
+        backgroundColor: colors.highScoresTertiary,
+        marginVertical: 5,
+        marginHorizontal: 10,
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        paddingVertical: 2,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    topScoreText:{
+        color: colors.lightText,
+        fontWeight: 'bold',
+        fontSize: 25,
+    },
+
+    otherScoreText:{
+        color: colors.lightText,
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+
+
     scoreNumText: {
         fontSize: 110,
         fontWeight: 'bold',
@@ -162,7 +238,7 @@ const styles = StyleSheet.create({
         width: 30,
         left: 10,
         zIndex: 1,
-      }    
+    }    
 });
 
 export default HighScoresScreen;
