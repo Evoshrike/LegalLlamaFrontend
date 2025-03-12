@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, Modal, Pressable, Platform, Touchabl
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { fetchChatResponse, fetchFeedback, fetchResponse, fetchScenario, fetchTestingFeedback, startSession } from "../config/API requests";
-import { q_and_a, RootStackParamList, testing_feedback } from "../config/types";
+import { q_and_a, RootStackParamList, testing_feedback, testing_feedback_report } from "../config/types";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Button } from "@rneui/base";
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -86,7 +86,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   const [waitingForResponse, setWaitingForResponse] = React.useState(false); 
   const [finalModalVisible, setFinalModalVisible] = React.useState(false);
   const [isAnswerHalfCorrect, setIsAnswerHalfCorrect] = React.useState(false);
-  const [listOfFeedback, setListOfFeedback] = React.useState<testing_feedback[]>([]);
+  const [listOfFeedback, setListOfFeedback] = React.useState<testing_feedback_report[]>([]);
   // const [funcToRetry, setFuncToRetry] = React.useState<() => void>(() => () => {});
 
   useEffect(() => {
@@ -117,7 +117,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  async function onFinishingInterview(q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback>) {
+  async function onFinishingInterview(q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback_report>) {
     try {
       setWaitingForResponse(true);
       const feedbackJSON = await fetchFeedback(q_and_a_pairs, list_feedback, stage);
@@ -135,7 +135,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       console.log("Error fetching end-of-interview feedback:", error);
       setNetworkErrorModalVisible(true);
     };
-    setFinalModalVisible(true);
+  
   };
 
   const onFinalModalHomePress = () => {
@@ -143,7 +143,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation.navigate("Home");
   };
 
-  const handleNavigation = (q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback>) => {
+  const handleNavigation = (q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback_report>) => {
     switch (stage) {
       case 1: {
         if (questionCount === stageQuestionCount[0] - 1){
@@ -155,7 +155,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       case 2: {
         if (questionCount === stageQuestionCount[1] - 1){
           console.log("stage 2: ", stage);
-          onFinishingInterview(q_and_a_pairs, list_feedback);
+          onMovingStage(q_and_a_pairs, list_feedback);
       }
       break;
     };
@@ -230,11 +230,13 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         const testing_feedback = await fetchTestingFeedback(testing_feedback_input);
         const stage_confidence = testing_feedback.stage_confidence;
         
-        const context_switch = testing_feedback.context_switch;
+        const context_switch = testing_feedback.context_switch && stage === 2;
         const q_type = testing_feedback.q_type[0];
+        const q_type_confidence = Number(testing_feedback.q_type[1]);
         console.log("q_type: ", q_type);
         const q_stage = testing_feedback.q_stage;
-        const wrong_stage = (q_stage != stage) && stage_confidence > 0.7;
+        // WILL ALLOW STAGE 1 == STAGE 3 (the classifier is bad at differentiating these)
+        const wrong_stage = (q_stage % 2 != stage % 2) && stage_confidence > 0.75;
         var message = "";
         if (context_switch) {
           message += "You have switched context. Please avoid doing so unless prompted by the interviewee.";
@@ -247,7 +249,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
           };
           message += "ou have asked a question that is not appropriate for this stage. Your question is for stage " + q_stage + " but we are currently in stage " + stage + ".";
         };
-        if (q_type == "Suggestive"){
+        if (q_type == "Suggestive" && q_type_confidence > 0.75){
           console.log("Suggestive question asked");
           if (context_switch || wrong_stage){
             message += " Also, p";
@@ -256,7 +258,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
           };
           message += "lease avoid asking suggestive questions.";
         }
-        const new_feedback = { q_type: q_type, q_stage: q_stage, context_switch: context_switch, stage_confidence: stage_confidence };
+        const new_feedback = { q_type: q_type, q_stage: q_stage, context_switch: context_switch, stage_confidence: stage_confidence, type_confidence: q_type_confidence };
         const updatedListOfFeedback = [...listOfFeedback, new_feedback];
         console.log("updated list of feedback: ", updatedListOfFeedback);
         setListOfFeedback(updatedListOfFeedback);
@@ -269,14 +271,15 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         const testing_feedback = await fetchTestingFeedback(testing_feedback_input);
         const stage_confidence = testing_feedback.stage_confidence;
         const q_type = testing_feedback.q_type[0];
+        const q_type_confidence = Number(testing_feedback.q_type[1]);
         console.log("q_type: ", q_type);
         const q_stage = testing_feedback.q_stage;
-        const wrong_stage = (q_stage != stage) && stage_confidence > 0.7;
+        const wrong_stage = (q_stage % 2 != stage % 2) && stage_confidence > 0.75;
         var message = "";
         if (wrong_stage) {
           message += "You have asked a question that is not appropriate for this stage. Your question is for stage " + q_stage + " but we are currently in stage " + stage + ".";
         };
-        if (q_type == "Suggestive"){
+        if (q_type == "Suggestive" && q_type_confidence > 0.75){
           console.log("Suggestive question asked");
           if (wrong_stage){
             message += " Also, p";
@@ -285,7 +288,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
           };
           message += "lease avoid asking suggestive questions.";
         }
-        const new_feedback = { q_type: q_type, q_stage: q_stage, context_switch: false, stage_confidence };
+        const new_feedback = { q_type: q_type, q_stage: q_stage, context_switch: false, stage_confidence, type_confidence: q_type_confidence };
         const updatedListOfFeedback = [...listOfFeedback, new_feedback];
         console.log("updated list of feedback: ", updatedListOfFeedback);
         setListOfFeedback(updatedListOfFeedback);
@@ -302,7 +305,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     
   };
 
-  async function onMovingStage(q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback>): Promise<undefined> {
+  async function onMovingStage(q_and_a_pairs: Array<q_and_a>, list_feedback: Array<testing_feedback_report>): Promise<undefined> {
     try {
       setWaitingForResponse(true);
       console.log("Moving stage");
