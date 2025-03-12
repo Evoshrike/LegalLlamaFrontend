@@ -40,7 +40,9 @@ type testing_feedback = {
   q_type: string;
   q_stage: number;
   context_switch: boolean;
+  stage_confidence: number;
 }
+
 
 type item =  { key: string, label: string }
 
