@@ -35,11 +35,12 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 5,
       onPanResponderGrant: () => {},
       onPanResponderMove: (event, gesture) => {
-        Animated.event([null, {dy: translateYFeedback}])(event, gesture);
+        //Animated.event([null, {dy: translateYFeedback}])(event, gesture);
+        translateYFeedback.setValue(gesture.dy);
       },
       onPanResponderRelease: (event, gesture) => {
         Animated.spring(translateYFeedback, {
