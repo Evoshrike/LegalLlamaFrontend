@@ -31,7 +31,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   ];
   const [userWrongOption, setUserWrongOption] = React.useState(0);
   const [categoryNum, setCategoryNum] = React.useState(1);
-  const translateYFeedback = useRef(new Animated.Value(0)).current;
+  const translateYFeedbackModal = useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -39,11 +39,11 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
       onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 5,
       onPanResponderGrant: () => {},
       onPanResponderMove: (event, gesture) => {
-        //Animated.event([null, {dy: translateYFeedback}])(event, gesture);
-        translateYFeedback.setValue(gesture.dy);
+        //Animated.event([null, {dy: translateYFeedbackModal}])(event, gesture);
+        translateYFeedbackModal.setValue(gesture.dy);
       },
       onPanResponderRelease: (event, gesture) => {
-        Animated.spring(translateYFeedback, {
+        Animated.spring(translateYFeedbackModal, {
           toValue: 0,
           useNativeDriver: true,
         }).start();
@@ -250,7 +250,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
         onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
-          <Animated.View pointerEvents="box-none" style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal, {transform : [{translateY: translateYFeedback}]}]} {...panResponder.panHandlers}>
+          <Animated.View pointerEvents="box-none" style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal, {transform : [{translateY: translateYFeedbackModal}]}]} {...panResponder.panHandlers}>
             <Text style={styles.modalText}>
               {isAnswerCorrect ? "Well Done!" : `Wrong Answer \n ${feedback[userWrongOption]} \n\n HINT: \n ${feedback[categoryNum]}`}
             </Text>
