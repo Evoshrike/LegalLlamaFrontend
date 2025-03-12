@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, Image, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Pressable, Image, Animated, PanResponder } from 'react-native';
 
 import colors from '../config/colors';
 import { fetchQuestion } from '../config/API requests';
@@ -8,6 +8,7 @@ import { RootStackParamList } from '../config/types';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { GestureHandlerRootView, NativeViewGestureHandler, ScrollView } from 'react-native-gesture-handler';
 import { getHighScores, saveHighScores } from '../config/PersistentState';
+import { maybeCompleteAuthSession } from 'expo-web-browser';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MultiChoiceScreen'>;
 
@@ -23,6 +24,32 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   const [optionsModalVisible, setOptionsModalVisible] = React.useState(false);
   const [networkErrorModalVisible, setNetworkErrorModalVisible] = React.useState(false);
   const [waitingForResponse, setWaitingForResponse] = React.useState(false);
+  const feedback = ["An open-ended question is one that encourages a long detailed answer (i.e., a free-recall response) and cannot be answered by yes or no.",
+    "A directive question is a 'Who, What, When, Where, Why, How' question on a specific topic. This type of question encourages the interviewee to focus on a specific aspect of the event without adding unsolicited information.",
+    "An option-posing question is one that is multiple choice (this also includes yes/no questions) where the answer is part of the question but is not implied.",
+    "A suggestive question is a question with presuppositions, implied correct answers, or information that the interviewee did not reveal themeselves."
+  ];
+  const [userWrongOption, setUserWrongOption] = React.useState(0);
+  const [categoryNum, setCategoryNum] = React.useState(1);
+  const translateYFeedback = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 5,
+      onPanResponderGrant: () => {},
+      onPanResponderMove: (event, gesture) => {
+        Animated.event([null, {dy: translateYFeedback}])(event, gesture);
+      },
+      onPanResponderRelease: (event, gesture) => {
+        Animated.spring(translateYFeedback, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+        
+      },
+    })
+  ).current;
 
   const TypingIndicator: React.FC = () => {
     const dot1 = useRef(new Animated.Value(0)).current;
@@ -76,6 +103,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
     } else {
       console.log("correct answer: ", category);
       setIsAnswerCorrect(false);
+      setUserWrongOption(option);
     }
     setModalVisible(true);
   };
@@ -139,13 +167,28 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
 
   async function getQuestion() {
     try {
-    setWaitingForResponse(true);
-    const question = await fetchQuestion();
-    setWaitingForResponse(false);
-    setQuestion(question.question);
-    console.log("question: ", question.question);
-    
-    setCategory(question.category);
+      setWaitingForResponse(true);
+      const question = await fetchQuestion();
+      setWaitingForResponse(false);
+      setQuestion(question.question);
+      console.log("question: ", question.question);
+      
+      setCategory(question.category);
+
+      switch (question.category) {
+        case "Open-ended":
+          setCategoryNum(0);
+          break;
+        case "Directive":
+          setCategoryNum(1);
+          break;
+        case "Option-Posing":
+          setCategoryNum(2);
+          break;
+        case "Suggestive":
+          setCategoryNum(3);
+          break;
+      }
     } catch (error) {
       console.log("error: ", error); 
       setNetworkErrorModalVisible(true);
@@ -206,17 +249,18 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
         onRequestClose={handleCloseModal}
       >
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal]}>
+          <Animated.View pointerEvents="box-none" style={[styles.modalContent, isAnswerCorrect ? styles.correctModal : styles.incorrectModal, {transform : [{translateY: translateYFeedback}]}]} {...panResponder.panHandlers}>
             <Text style={styles.modalText}>
-              {isAnswerCorrect ? "Well Done!" : "Wrong Answer"}
+              {isAnswerCorrect ? "Well Done!" : `Wrong Answer \n ${feedback[userWrongOption]} \n\n HINT: \n ${feedback[categoryNum]}`}
             </Text>
-            <Pressable
+            <TouchableOpacity
               style={[styles.modalButton, isAnswerCorrect ? styles.correctButton : styles.incorrectButton]}
               onPress={() => handleAnswer(isAnswerCorrect ? true : false)}
             >
               <Text style={styles.buttonText}>{isAnswerCorrect ? "Continue" : "Got It"}</Text>
-            </Pressable>
-          </View>
+          </TouchableOpacity>
+          </Animated.View>
+          
         </View>
       </Modal>
       <Modal
@@ -458,6 +502,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.lightText,
     marginBottom: 10,
+    textAlign: 'center',
   },
   modalButton: {
     paddingVertical: 10,
