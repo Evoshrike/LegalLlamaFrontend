@@ -103,12 +103,12 @@ const AboutScreen: React.FC<Props> = ({ navigation }) => {
                               </Pressable>
             <Text style={styles.header}>About Legal Llama</Text>
             <View style={styles.optionContainer}>
-                <Text style={styles.aboutText}>This app was developed in 2025 as a group project by Cambridge University students Radhika Aggarwal,
-                     Nastasya Anos, Shrey Patel, Harry West, and Jude Hill (collectively known as Team Sierra), in
+                <Text style={styles.aboutText}>This app was developed in 2025 as a group project by Cambridge University students Radhika Agrawal,
+                     Nastasya Anokhina, Shrey Patel, Harry West, Hifzur Rahman and Jude Hill (collectively known as Team Sierra), in
                       collaboration with Dr. Ching-Yu (Soar) Huang from the National University of Taiwan. Created as part of 
                       the Part IB Computer Science Tripos, the app is designed to assist users in learning proper techniques 
                       for conducting interviews with children in sensitive situations, following the NICHD protocol. 
-                      Below, you can find links to the protocol and the project's GitHub repository.
+                      Below, you can find links to the protocol and the project's GitHub repositories.
                 </Text>
                 
             </View>

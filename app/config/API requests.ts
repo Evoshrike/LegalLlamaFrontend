@@ -1,13 +1,13 @@
 
 const onAndroid = false; // Variable for accessing localhost on emulator vs local device
-const remote = true; // Variable for accessing remote server vs local server
+const remote = false; // Variable for accessing remote server vs local server
 const timeout = 10000; // Timeout for API requests
 
 const url = remote ? 'http://18.175.217.103:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
 import { categorize_response, categorized_question, chat_request, feedback, q_and_a, testing_feedback, testing_feedback_input } from './types';
 
 async function fetchResponse(prompt: string): Promise<string> {
-    console.log("fetching response");
+    
     const responseURL = url + '/generate-response';
     const requestBody = { prompt: prompt };
 
@@ -29,7 +29,7 @@ async function fetchResponse(prompt: string): Promise<string> {
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
-    console.log("response: ", response);
+    
 
     const responseJSON = await response.json();
     const message = responseJSON.response;
@@ -37,7 +37,7 @@ async function fetchResponse(prompt: string): Promise<string> {
 } 
 
 async function fetchChatResponse(prompt: chat_request): Promise<string> {
-    console.log("fetching response");
+    
     const responseURL = url + '/chat';
     const requestBody = prompt;
 
@@ -59,7 +59,7 @@ async function fetchChatResponse(prompt: chat_request): Promise<string> {
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
-    console.log("response: ", response);
+    
 
     const responseJSON = await response.json();
     const message = responseJSON.message;
@@ -191,12 +191,12 @@ async function fetchQuestion(): Promise<categorized_question> {
     ]);
 
     if (!response.ok) {
-        console.log("response: ", response.json());
+        
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const responseJSON = await response.json();
-    console.log("response: ", responseJSON);
+    
     return responseJSON;
 }
 
@@ -253,7 +253,7 @@ async function startSession(): Promise<number> {
 
     const responseJSON = await response.json();
     const session_id = responseJSON.session_id;
-    console.log("session_id: ", session_id);
+    
     return session_id;
 }
 
