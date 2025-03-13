@@ -16,11 +16,11 @@ import SettingsScreen from "./Screens/AboutScreen";
 import HighScoresScreen from "./Screens/HighScoresScreen";
 import { initHighScores } from "./config/PersistentState";
 
-console.log("app loading..");
+
 enableScreens();
 
 const App = () => {
-  console.log("We got to APP");
+
   initHighScores();
   const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -30,15 +30,15 @@ const App = () => {
       initialRouteName="Home"
       screenOptions={{
         headerStyle: {
-          backgroundColor: "#f4511e", // Customize the background color
+          backgroundColor: "#f4511e",
         },
         statusBarTranslucent: true,
         headerShown: false,
         
 
-        headerTintColor: "#fff", // Customize the back button and title color
+        headerTintColor: "#fff", 
         headerTitleStyle: {
-          fontWeight: "bold", // Customize the font style
+          fontWeight: "bold", 
           color: "#fff",
         },
       }}

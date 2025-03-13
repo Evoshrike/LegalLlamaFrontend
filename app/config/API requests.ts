@@ -1,9 +1,9 @@
 
-const onAndroid = false; // Variable for accessing localhost on emulator vs local device
-const remote = true; // Variable for accessing remote server vs local server
-const timeout = 10000; // Timeout for API requests
+const onAndroid = false; 
+const remote = true; 
+const timeout = 10000; 
 
-// Old server ip: http://18.175.217.103:8000
+
 
 const url = remote ? 'http://18.130.224.226:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
 import { calculateFeedback } from './Feedback';
@@ -14,7 +14,7 @@ async function fetchResponse(prompt: string): Promise<string> {
     const responseURL = url + '/generate-response';
     const requestBody = { prompt: prompt };
 
-     // Create a timeout promise, race against response promise, throw err if no response in 5s
+   
      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Network timeout')), timeout) 
     );
@@ -70,11 +70,11 @@ async function fetchChatResponse(prompt: chat_request): Promise<string> {
 } 
 
 async function fetchFeedback(conversation: Array<q_and_a>, listFeedback: Array<testing_feedback_report>, stage: number): Promise<feedback> {
-    console.log("fetching feedback");
+ 
     const responseURL = url + '/end-stage-feedback';
     
     const requestBody = { responses: conversation };
-    console.log(requestBody);
+
 
      // Create a timeout promise, race against response promise, throw err if no response in 5s
      const timeoutPromise = new Promise<never>((_, reject) =>
@@ -112,12 +112,12 @@ async function fetchFeedback(conversation: Array<q_and_a>, listFeedback: Array<t
             
             }
     
-    console.log(feedback);
+ 
     return feedback;
 } 
 
 async function categorizeQuestion(question: string): Promise<categorize_response> {
-    console.log("categorising q")
+   
     const responseURL = url + '/categorize-question';
     const requestBody = { question: question};
     
@@ -142,16 +142,16 @@ async function categorizeQuestion(question: string): Promise<categorize_response
     
 
     const responseJSON = await response.json();
-    console.log("category: ", responseJSON);
+  
     return responseJSON;
 } 
 
 async function fetchTestingFeedback(conversation: testing_feedback_input): Promise<testing_feedback> {
-    console.log("fetching live feedback");
+
     const responseURL = url + '/live-feedback';
     
     const requestBody = conversation;
-    console.log(requestBody);
+
 
         // Create a timeout promise, race against response promise, throw err if no response in 5s
         const timeoutPromise = new Promise<never>((_, reject) =>
@@ -174,12 +174,12 @@ async function fetchTestingFeedback(conversation: testing_feedback_input): Promi
     
 
     const responseJSON = await response.json();
-    console.log(responseJSON);
+   
     return responseJSON;
 } 
 
 async function fetchQuestion(): Promise<categorized_question> {
-    console.log("fetching q");
+
     const responseURL = url + '/generate-question';
 
     // Create a timeout promise, race against response promise, throw err if no response in 5s

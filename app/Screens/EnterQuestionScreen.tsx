@@ -180,7 +180,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   const updateHighScoresList = async () => {
     const pastScores = await getHighScores();
     let newScores = [...pastScores];
-    console.log(pastScores);
+
     const pastScoresLen = pastScores.length;
     let insertIndex = null;
 
@@ -189,7 +189,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
         insertIndex = pastScoresLen - i + 1;
         newScores.splice(insertIndex, 0, {score: highscore, date: new Date().toDateString()});
         newScores = newScores.slice(-5);
-        console.log(newScores);
+
         await saveHighScores(newScores);
         break;
       }
@@ -218,7 +218,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    // console.log("passing highscore: ", highscore);
+ 
     if (!(isAnswerCorrect)) {
       handleCloseModal();
       setQuestion("");
@@ -228,7 +228,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
       if (successiveQuestionCount < 1) {
         setQuestion("");
         setPlaceholder("Enter your question");
-        console.log("question type index: ", (question_type_index + 1) % 4);
+       
 
         navigation.navigate("EnterQuestionScreen",
            { question_type_index: (question_type_index % 4) + 1, 
@@ -341,12 +341,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
             >
               <Text style={styles.buttonText}>Resume Practice</Text>
             </Pressable>
-            {/*<Pressable
-              style={[styles.optionsModalButton, styles.correctButton]}
-              onPress={() => handleSettingsPress()}
-            >
-              <Text style={styles.buttonText}>About</Text>
-            </Pressable>*/}
+       
           </View>
         </View>
       </Modal>

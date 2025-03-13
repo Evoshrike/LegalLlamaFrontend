@@ -127,9 +127,10 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleSend = () => {
     Keyboard.dismiss();
-    setSendEnabled(false);
+    
     if (questionCount < 5) {
       if (input.trim()) {
+        setSendEnabled(false);
         setLastQuestion(input);
         setMessages([...messages, { text: input, isUser: 1 }]);
         setInput("");
@@ -145,6 +146,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       setWaitingForResponse(true);
       const feedbackJSON = await fetchFeedback(q_and_a_pairs, list_feedback, stage);
+      setWaitingForResponse(false);
       setIsAnswerCorrect(feedbackJSON.is_correct);
       setIsAnswerHalfCorrect(feedbackJSON.is_half_correct);
       setFeedback(feedbackJSON.message);
@@ -156,7 +158,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         setModalVisible(true);
       }
     } catch (error) {
-      console.log("Error fetching end-of-interview feedback:", error);
+
       setNetworkErrorModalVisible(true);
     };
   
@@ -180,7 +182,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       case 2: {
         if (questionCount === stageQuestionCount[1] - 1){
           dontSet = true;
-          console.log("stage 2: ", stage);
+
           onMovingStage(q_and_a_pairs, list_feedback);
       }
       break;
@@ -188,7 +190,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       case 3: {
         if (questionCount === stageQuestionCount[2] - 1){
           dontSet = true;
-          console.log("stage 3: ", stage);
+  
           onFinishingInterview(q_and_a_pairs, list_feedback);
         }
         break;
@@ -246,7 +248,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
             clearInterval(interval);
             setBotTyping(false);
             if (callback) {
-                console.log("callback");
+        
                 callback();
             }
         }
@@ -259,13 +261,15 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         
         const penultimate_QApair = qAndAPairs[qAndAPairs.length - 1];
         const testing_feedback_input = { question_1: penultimate_QApair.question, response: penultimate_QApair.response, question_2: last_question };
+        setWaitingForResponse(true);
         const testing_feedback = await fetchTestingFeedback(testing_feedback_input);
+        setWaitingForResponse(false);
         const stage_confidence = testing_feedback.stage_confidence;
         
         const context_switch = testing_feedback.context_switch && stage === 2;
         const q_type = testing_feedback.q_type[0];
         const q_type_confidence = Number(testing_feedback.q_type[1]);
-        console.log("q_type: ", q_type);
+ 
         const q_stage = testing_feedback.q_stage;
         // WILL ALLOW STAGE 1 == STAGE 3 (the classifier is bad at differentiating these)
         const wrong_stage = (q_stage % 2 != stage % 2) && stage_confidence > 0.75;
@@ -282,7 +286,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
           message += "ou have asked a question that is not appropriate for this stage. Your question is for stage " + q_stage + " but we are currently in stage " + stage + ".";
         };
         if (q_type == "Suggestive" && q_type_confidence > 0.75){
-          console.log("Suggestive question asked");
+   
           if (context_switch || wrong_stage){
             message += " Also, p";
           } else {
@@ -292,7 +296,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         }
         const new_feedback = { q_type: q_type, q_stage: q_stage, context_switch: context_switch, stage_confidence: stage_confidence, type_confidence: q_type_confidence };
         const updatedListOfFeedback = [...listOfFeedback, new_feedback];
-        console.log("updated list of feedback: ", updatedListOfFeedback);
+
         setListOfFeedback(updatedListOfFeedback);
         if (message.length > 0) {
           displayMessageCharacterByCharacter(message, -1);
@@ -304,7 +308,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         const stage_confidence = testing_feedback.stage_confidence;
         const q_type = testing_feedback.q_type[0];
         const q_type_confidence = Number(testing_feedback.q_type[1]);
-        console.log("q_type: ", q_type);
+     
         const q_stage = testing_feedback.q_stage;
         const wrong_stage = (q_stage % 2 != stage % 2) && stage_confidence > 0.75;
         var message = "";
@@ -312,7 +316,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
           message += "You have asked a question that is not appropriate for this stage. Your question is for stage " + q_stage + " but we are currently in stage " + stage + ".";
         };
         if (q_type == "Suggestive" && q_type_confidence > 0.75){
-          console.log("Suggestive question asked");
+
           if (wrong_stage){
             message += " Also, p";
           } else {
@@ -322,7 +326,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         }
         const new_feedback = { q_type: q_type, q_stage: q_stage, context_switch: false, stage_confidence, type_confidence: q_type_confidence };
         const updatedListOfFeedback = [...listOfFeedback, new_feedback];
-        console.log("updated list of feedback: ", updatedListOfFeedback);
+  
         setListOfFeedback(updatedListOfFeedback);
         if (message.length > 0) {
           displayMessageCharacterByCharacter(message, -1);
@@ -331,7 +335,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         
       }
     } catch (error) {
-      console.log("Error fetching per-question feedback:", error);  
+
       setNetworkErrorModalVisible(true);
     }
     
@@ -341,9 +345,11 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
     try {
       setSendEnabled(false);
       setWaitingForResponse(true);
-      console.log("Moving stage");
+ 
   
       const feedbackJSON = await fetchFeedback(q_and_a_pairs, list_feedback, stage);
+
+      setWaitingForResponse(false);
   
       setIsAnswerCorrect(feedbackJSON.is_correct);
       setIsAnswerHalfCorrect(feedbackJSON.is_half_correct);
@@ -353,7 +359,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       setModalVisible(true);
     } catch (error) {
-      console.log("Error fetching end-of-stage feedback:", error);
+  
       setNetworkErrorModalVisible(true);
     };
    
@@ -367,7 +373,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setScenario(scenario);
       
     } catch (error) {
-      console.log("Error fetching scenario:", error);
+
       handleNetworkError(generateScenario);
   };
 };
