@@ -127,9 +127,10 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleSend = () => {
     Keyboard.dismiss();
-    setSendEnabled(false);
+    
     if (questionCount < 5) {
       if (input.trim()) {
+        setSendEnabled(false);
         setLastQuestion(input);
         setMessages([...messages, { text: input, isUser: 1 }]);
         setInput("");
