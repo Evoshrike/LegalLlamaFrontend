@@ -116,7 +116,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
     if (optionString == category || (alwaysOpenEnded && option == 0)) {
       setIsAnswerCorrect(true);
     } else {
-      console.log("correct answer: ", category);
+  
       setIsAnswerCorrect(false);
       setUserWrongOption(option);
     }
@@ -128,7 +128,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
       setHighscore(highscore + 1);
   } else {
     setHighscore(0);
-    console.log("correct answer: ", category);
+ 
   }
   handleCloseModal();
 };
@@ -136,7 +136,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
   const updateHighScoresList = async () => {
     const pastScores = await getHighScores();
     let newScores = [...pastScores];
-    console.log(pastScores);
+  
     const pastScoresLen = pastScores.length;
     let insertIndex = null;
 
@@ -145,7 +145,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
         insertIndex = pastScoresLen - i + 1;
         newScores.splice(insertIndex, 0, {score: highscore, date: new Date().toDateString()});
         newScores = newScores.slice(-5);
-        console.log(newScores);
+       
         await saveHighScores(newScores);
         break;
       }
@@ -190,7 +190,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
       const question = await fetchQuestion();
       setWaitingForResponse(false);
       setQuestion(question.question);
-      console.log("question: ", question.question);
+     
       
       setCategory(question.category);
 
@@ -209,7 +209,7 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
           break;
       }
     } catch (error) {
-      console.log("error: ", error); 
+    
       setNetworkErrorModalVisible(true);
       setWaitingForResponse(false);
     };

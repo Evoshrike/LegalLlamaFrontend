@@ -27,7 +27,7 @@ import {
         return () => backHandler.remove();
       }, []);
     
-    console.log("We got to welcome!!");
+
     return (
       <View style={styles.background}>
         <View style={styles.logoContainer}>
