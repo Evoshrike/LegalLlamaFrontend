@@ -331,7 +331,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
         
       }
     } catch (error) {
-      console.log("Error fetching per-quetsion feedback:", error);  
+      console.log("Error fetching per-question feedback:", error);  
       setNetworkErrorModalVisible(true);
     }
     
