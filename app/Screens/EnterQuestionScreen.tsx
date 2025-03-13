@@ -244,27 +244,23 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS == "android" ? "padding" : "height"} style={{ flex: 1 }}>
-        <KeyboardAwareScrollView
+      <KeyboardAwareScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{ flexGrow: 1 }}
           enableOnAndroid={true}
           extraScrollHeight={Platform.OS === "ios" ? 20 : 0}
         >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <View style={styles.background}>
-       <Pressable onPress={() => setOptionsModalVisible(true)} style={styles.backButton}>
-                    <Icon name="arrow-back" size={30} color={colors.darkText} />
-                  </Pressable>
-                  <Text style={styles.toptext}>Practice Mode</Text>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.background}>
+            <Pressable onPress={() => setOptionsModalVisible(true)} style={styles.backButton}>
+              <Icon name="arrow-back" size={30} color={colors.darkText} />
+            </Pressable>
+            <Text style={styles.toptext}>Practice Mode</Text>
       <View style={styles.orangeBox}>
         <Text style={styles.orangeBoxText}>🔥 {highscore}</Text>
       </View>
-      <Pressable style={styles.optionsButton} onPress={() => setOptionsModalVisible(true)}>
-        <View style={styles.optionsIcon}>
-          <View style={styles.bar} />
-          <View style={styles.bar} />
-          <View style={styles.bar} />
-        </View>
+      <Pressable style={styles.aboutButton} onPress={() => navigation.navigate("AboutScreen")}>
+        <Icon name="information-circle-outline" size={35} color={colors.darkText}/>
       </Pressable>
       <Text style={styles.header}>Type in {questionPronoun} {questionType} question</Text>
       <View style={styles.logoContainer}>
@@ -344,12 +340,12 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
             >
               <Text style={styles.buttonText}>Resume Practice</Text>
             </Pressable>
-            <Pressable
+            {/*<Pressable
               style={[styles.optionsModalButton, styles.correctButton]}
               onPress={() => handleSettingsPress()}
             >
               <Text style={styles.buttonText}>About</Text>
-            </Pressable>
+            </Pressable>*/}
           </View>
         </View>
       </Modal>
@@ -525,6 +521,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     textAlignVertical: "top",
     color: "",
+  },
+  aboutButton:{
+    position: "absolute",
+    top: 10,
+    right: 10,
   },
   orangeBox: {
     position: 'absolute',

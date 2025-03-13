@@ -1,6 +1,6 @@
 
 const onAndroid = false; // Variable for accessing localhost on emulator vs local device
-const remote = false; // Variable for accessing remote server vs local server
+const remote = true; // Variable for accessing remote server vs local server
 const timeout = 10000; // Timeout for API requests
 
 // Old server ip: http://18.175.217.103:8000

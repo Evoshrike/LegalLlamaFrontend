@@ -228,13 +228,9 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
                           <Icon name="arrow-back" size={30} color={colors.darkText} />
                         </Pressable>
                         <Text style={styles.toptext}>Practice Mode</Text>
-      <Pressable style={styles.optionsButton} onPress={() => setOptionsModalVisible(true)}>
-              <View style={styles.optionsIcon}>
-                <View style={styles.bar} />
-                <View style={styles.bar} />
-                <View style={styles.bar} />
-              </View>
-            </Pressable>
+      <Pressable style={styles.aboutButton} onPress={() => navigation.navigate("AboutScreen")}>
+        <Icon name="information-circle-outline" size={35} color={colors.darkText}/>
+      </Pressable>
       <View style={styles.orangeBox}>
               <Text style={styles.orangeBoxText}>🔥 {highscore}</Text>
             </View>
@@ -309,12 +305,12 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
                   >
                     <Text style={styles.buttonText}>Resume Practice</Text>
                   </Pressable>
-                  <Pressable
+                  {/*<Pressable
                     style={[styles.optionsModalButton, styles.correctButton]}
                     onPress={() => handleSettingsPress()}
                   >
                     <Text style={styles.buttonText}>About</Text>
-                  </Pressable>
+                  </Pressable>*/}
                 </View>
               </View>
             </Modal>
@@ -383,10 +379,13 @@ const styles = StyleSheet.create({
     
   },
   logoContainer: {
-    
-    
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  aboutButton:{
+    position: "absolute",
+    top: 10,
+    right: 10,
   },
   orangeBox: {
     position: 'absolute',

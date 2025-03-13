@@ -46,9 +46,11 @@ const AboutScreen: React.FC<Props> = ({ navigation }) => {
         Linking.openURL('https://nichdprotocol.com/the-nichd-protocol/_obj/pdf/28/REVISED_VERSION_2021.pdf');
     };
 
+    /*
     const handleHomePress = () => {
         navigation.navigate("Home");
     };
+    */
 
     const handleGoBack = () => {
         navigation.goBack();
@@ -142,6 +144,7 @@ const AboutScreen: React.FC<Props> = ({ navigation }) => {
                 <Button title="Open" onPress={handleBackendPress} buttonStyle={styles.buttonStyle} />
                 </View>
             </View>
+            {/*
             <View style={styles.homeButton}>
                     <Button
                       title="Home"
@@ -150,7 +153,7 @@ const AboutScreen: React.FC<Props> = ({ navigation }) => {
                       titleStyle={{ fontWeight: "bold" }}
                       onPress={handleHomePress}
                     />
-                  </View>
+                  </View>*/}
         </View>
     );
 };

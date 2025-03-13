@@ -61,6 +61,10 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
                     <Icon name="arrow-back" size={30} color={colors.lightText}/>
                 </Pressable>
 
+                <Pressable onPress={()=>navigation.navigate("AboutScreen")} style={styles.aboutButton}>
+                    <Icon name="information-circle-outline" size={40} color={colors.lightText}/>
+                </Pressable>
+
                 <View style={styles.imageContainer}>
                     <Image source={require("../assets/images/trophy.png")} style={styles.image} />
                 </View>
@@ -123,6 +127,11 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.highScoresSecondary,
         alignItems: "center",
+    },
+    aboutButton: {
+        position: "absolute",
+        top: 10,
+        right:10
     },
     headContainer: {
         justifyContent: "center",
