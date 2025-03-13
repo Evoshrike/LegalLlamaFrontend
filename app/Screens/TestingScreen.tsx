@@ -151,7 +151,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       setIsAnswerHalfCorrect(feedbackJSON.is_half_correct);
       setFeedback(feedbackJSON.message);
       // wait 1 second before showing feedback
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 200));
       if (feedbackJSON.is_correct) {
         setFinalModalVisible(true);
       } else {
@@ -456,7 +456,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS == "android" ? "padding" : "height"} style={{ flex: 1 }}>
+    <KeyboardAvoidingView behavior={Platform.OS == "android" ? "padding" : "height"} style={{ flex: 1 }}
+    >
     <KeyboardAwareScrollView
       style={{ flex: 1 }}
       contentContainerStyle={{ flexGrow: 1 }}
@@ -475,7 +476,8 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={stage === 1 ? styles.scenarioTextStage1 : styles.scenarioTestNotStage1}>
               Your scenario is: {stage != 1 ? scenario : ""}</Text>
           </View>
-          <ScrollView style={styles.chatContainer}>
+          <ScrollView style={styles.chatContainer}
+          keyboardShouldPersistTaps = "handled">
             {messages.map((message, index) => (
               <ChatMessage key={index} message={message.text} isUser={message.isUser} />
             ))}
