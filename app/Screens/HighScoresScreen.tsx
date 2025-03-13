@@ -66,7 +66,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
                 </Pressable>
 
                 <View style={styles.imageContainer}>
-                    <Image source={require("../assets/images/trophy.png")} style={styles.image} />
+                    <Image source={require("../assets/images/trophy.png")} style={styles.trophyImage} />
                 </View>
 
                 
@@ -78,8 +78,13 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
 
             <View style={styles.scoresContainer}>
                 <View style={styles.scoresHeader}>
-                    <Text style={styles.scoreTypeText}>PRACTICE MODE</Text>
-                    <Text style={styles.scoreTypeText}># Correct answers in a row</Text>
+                    <Pressable onPress={()=>confettiRef.current?.start()}>
+                        <Image source={require("../assets/images/llama.png")} style={styles.llamaImage} />
+                    </Pressable>
+                    <View style={styles.scoresHeaderText}>
+                        <Text style={styles.scoreTypeText}>PRACTICE MODE</Text>
+                        <Text style={styles.scoreTypeText}># Correct answers in a row</Text>
+                    </View>
                 </View>
                 
                 <View style={styles.scoreRowsContainer}>
@@ -99,19 +104,6 @@ const HighScoresScreen: React.FC<Props> = ({ navigation}) => {
                     
                     
                 </View>
-
-                
-                
-                {/*
-                { topScore !== null ? 
-                    <>
-                        <Text style={styles.scoreNumText}>🔥{topScore.score}</Text>
-                        <Text style={styles.scoreDateText}>{topScore.date}</Text>
-                    </>  :
-                    <Text style={styles.noScoresText}>... </Text>
-
-                }
-                */}
 
             </View>
 
@@ -144,9 +136,14 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-    image: {
+    trophyImage: {
         width: width * 0.35,
         height: height * 0.25,
+    },
+    llamaImage: {
+        width: width * 0.12,
+        height: height * 0.08,
+        marginRight: 15,
     },
     title: {
         fontSize: 50,
@@ -176,8 +173,14 @@ const styles = StyleSheet.create({
         borderTopColor: "white",
         borderBottomColor: "white",
         width: width,
-        paddingHorizontal: width * 0.07,
-        paddingVertical: height * 0.015,
+        paddingHorizontal: width * 0.04,
+        paddingTop: height * 0.01,
+        paddingBottom: height * 0.015,
+        flexDirection: "row"
+    },
+    scoresHeaderText:{
+        marginTop:7,
+        flexDirection: "column"
     },
     scoreTypeText:{
         fontSize: 20,
@@ -196,7 +199,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.highScoresTertiary,
         marginVertical: 5, 
         marginHorizontal: 10,
-        borderRadius: 5,
+        borderRadius: 10,
         paddingHorizontal: 10,
         paddingVertical: 2,
         justifyContent: "center",
@@ -207,7 +210,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.highScoresTertiary,
         marginVertical: 5,
         marginHorizontal: 10,
-        borderRadius: 5,
+        borderRadius: 10,
         paddingHorizontal: 10,
         paddingVertical: 2,
         justifyContent: "center",
