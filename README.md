@@ -7,6 +7,11 @@ In the event that the server is moved or you want to self-host, you can point th
 IP by editing ```./app/config/API Requests.ts```. Setting `remote` to `false` will use `localhost` or you
 can set some custom IP in `url`.
 
+# Simple install with Expo
+
+Visit this link: (https://expo.dev/accounts/evoshrike/projects/LegalLlama/builds/375771fa-65d7-4355-a91f-8aec95523ba5)
+Click install.
+
 ## Deprecated
 `BullshitAPI` is a deprecated backend. Do not use it.
 
