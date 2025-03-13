@@ -1,9 +1,9 @@
 
-const onAndroid = false; // Variable for accessing localhost on emulator vs local device
-const remote = true; // Variable for accessing remote server vs local server
-const timeout = 10000; // Timeout for API requests
+const onAndroid = false; 
+const remote = true; 
+const timeout = 10000; 
 
-// Old server ip: http://18.175.217.103:8000
+
 
 const url = remote ? 'http://18.130.224.226:8000' : (onAndroid ? 'http://10.0.2.2:8000' : 'http://127.0.0.1:8000');   
 import { calculateFeedback } from './Feedback';
@@ -14,7 +14,7 @@ async function fetchResponse(prompt: string): Promise<string> {
     const responseURL = url + '/generate-response';
     const requestBody = { prompt: prompt };
 
-     // Create a timeout promise, race against response promise, throw err if no response in 5s
+   
      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Network timeout')), timeout) 
     );

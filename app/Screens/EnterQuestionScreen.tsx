@@ -341,12 +341,7 @@ const EnterQuestionScreen: React.FC<Props> = ({ navigation, route }) => {
             >
               <Text style={styles.buttonText}>Resume Practice</Text>
             </Pressable>
-            {/*<Pressable
-              style={[styles.optionsModalButton, styles.correctButton]}
-              onPress={() => handleSettingsPress()}
-            >
-              <Text style={styles.buttonText}>About</Text>
-            </Pressable>*/}
+       
           </View>
         </View>
       </Modal>
