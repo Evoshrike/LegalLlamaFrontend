@@ -140,12 +140,21 @@ const MultiChoiceScreen: React.FC<Props> = ({ navigation, route }) => {
     const pastScoresLen = pastScores.length;
     let insertIndex = null;
 
+    if (pastScoresLen == 0){
+      newScores = [{score: highscore, date: new Date().toDateString()}];
+      await saveHighScores(newScores);
+    }
+
     for (let i = 1; i <= 5 && i <= pastScoresLen; i++) {
       if (pastScores[pastScoresLen - i].score < highscore) {
         insertIndex = pastScoresLen - i + 1;
         newScores.splice(insertIndex, 0, {score: highscore, date: new Date().toDateString()});
         newScores = newScores.slice(-5);
-
+        await saveHighScores(newScores);
+        break;
+      } else if (i == pastScoresLen){
+        newScores.splice(0, 0, {score: highscore, date: new Date().toDateString()});
+        newScores = newScores.slice(-5);
         await saveHighScores(newScores);
         break;
       }
