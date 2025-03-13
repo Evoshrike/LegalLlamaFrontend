@@ -48,3 +48,6 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Credits
+<a href="https://freepngimg.com/png/75846-trophy-cup-icon-free-download-image">Trophy Cup Icon Free Download Image from FreePNGimg.com</a>

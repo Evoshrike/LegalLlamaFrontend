@@ -456,6 +456,7 @@ const TestingScreen: React.FC<Props> = ({ navigation, route }) => {
       contentContainerStyle={{ flexGrow: 1 }}
       enableOnAndroid={true}
       extraScrollHeight={Platform.OS === "ios" ? 20 : 0}
+      keyboardShouldPersistTaps = "handled"
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
