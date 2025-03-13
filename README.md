@@ -1,3 +1,15 @@
+# LegalLlama App
+
+This repo is for the frontend of our Legal Llama app.
+It requires the SierraServer backend to be running.
+
+In the event that the server is moved or you want to self-host, you can point the front end to the new
+IP by editing ```./app/config/API Requests.ts```. Setting `remote` to `false` will use `localhost` or you
+can set some custom IP in `url`.
+
+## Deprecated
+`BullshitAPI` is a deprecated backend. Do not use it.
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
