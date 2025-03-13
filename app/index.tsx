@@ -16,11 +16,11 @@ import SettingsScreen from "./Screens/AboutScreen";
 import HighScoresScreen from "./Screens/HighScoresScreen";
 import { initHighScores } from "./config/PersistentState";
 
-console.log("app loading..");
+
 enableScreens();
 
 const App = () => {
-  console.log("We got to APP");
+
   initHighScores();
   const Stack = createNativeStackNavigator<RootStackParamList>();
 

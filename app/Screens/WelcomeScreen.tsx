@@ -29,7 +29,7 @@ import {
         return () => backHandler.remove();
       }, []);
     
-    console.log("We got to welcome!!");
+  
     return (
       <View style={styles.background}>
         <Pressable onPress={()=>navigation.navigate("AboutScreen")} style={styles.aboutButton}>
